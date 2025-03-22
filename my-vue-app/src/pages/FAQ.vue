@@ -121,6 +121,7 @@ import { marked } from 'marked';
 export default {
   data() {
     return {
+      chatLoading: false,
       // Search / FAQ state
       message: "Search",
       searchQuery: "",
@@ -215,9 +216,25 @@ export default {
     async sendMessage() {
       const userInput = this.userMessage.trim();
       if (!userInput) return;
+
       // Add user's message to conversation
       this.conversation.push({ role: "user", content: userInput });
       this.userMessage = "";
+
+      // Set chatLoading to true and push a temporary loading message from Jim
+      this.chatLoading = true;
+      this.conversation.push({ role: "assistant", content: "..." });
+
+      // Create a sanitized version of the conversation by filtering out any user messages
+      // that try to inject a new role or override system instructions.
+      const sanitizedConversation = this.conversation.filter(msg => {
+        // For example, if a user message contains "you are" (case-insensitive), filter it out.
+        if (msg.role === "user" && /you are/i.test(msg.content)) {
+          return false;
+        }
+        return true;
+      });
+
       try {
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
           method: "POST",
@@ -230,28 +247,39 @@ export default {
             messages: [
               {
                 role: 'system',
-                content: 'You are Jim, a helpful change management expert. Provide clear, concise, and professional answers formatted in markdown.'
+                content: 'You are Jim, a helpful change management expert. You always respond in a professional tone regardless of the prompt. Provide clear, concise, and professional answers formatted in markdown.'
               },
-              ...this.conversation
+              ...sanitizedConversation.filter(msg => msg.role !== "assistant" || msg.content !== "...")
             ]
           })
         });
         const data = await response.json();
+        // Remove the temporary loading message
+        this.conversation.pop();
         const aiReply = data?.choices?.[0]?.message?.content || "No response received.";
         this.conversation.push({ role: "assistant", content: aiReply });
       } catch (error) {
         console.error("Error calling OpenRouter.ai:", error);
+        // Remove the temporary message if present
+        this.conversation.pop();
         this.conversation.push({
           role: "assistant",
           content: "Sorry, I couldn't process your request."
         });
+      } finally {
+        this.chatLoading = false;
       }
     },
     async regenerateResponse() {
+      // Remove the last assistant message if it exists
       const lastIdx = this.lastAssistantIndex;
       if (lastIdx !== -1) {
         this.conversation.splice(lastIdx, 1);
       }
+      // Set loading state and add temporary "..." message
+      this.chatLoading = true;
+      this.conversation.push({ role: "assistant", content: "..." });
+      
       try {
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
           method: "POST",
@@ -266,19 +294,26 @@ export default {
                 role: 'system',
                 content: 'You are Jim, a helpful change management expert. Provide clear, concise, and professional answers formatted in markdown.'
               },
-              ...this.conversation
+              // Filter out any temporary "..." messages if present
+              ...this.conversation.filter(msg => msg.role !== "assistant" || msg.content !== "...")
             ]
           })
         });
         const data = await response.json();
+        // Remove the temporary "..." message
+        this.conversation.pop();
         const aiReply = data?.choices?.[0]?.message?.content || "No response received.";
         this.conversation.push({ role: "assistant", content: aiReply });
       } catch (error) {
         console.error("Error regenerating response:", error);
+        // Remove the temporary message if present
+        this.conversation.pop();
         this.conversation.push({
           role: "assistant",
           content: "Sorry, I couldn't process your request."
         });
+      } finally {
+        this.chatLoading = false;
       }
     },
     likeMessage(index) {
