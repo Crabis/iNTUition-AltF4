@@ -11,7 +11,8 @@
                     <div v-for="(message, index) in messages" :key="index"
                         :class="['message', message.role === 'user' ? 'user-message' : 'bot-message']">
                         <b-avatar v-if="message.role !== 'user'" variant="primary" icon="robot"></b-avatar>
-                        <div class="message-content">{{ message.content }}</div>
+                        <div class="message-content" v-if="message.role === 'user'">{{ message.content }}</div>
+                        <div class="message-content formatted-content" v-else v-html="formatMessage(message.content)"></div>
                         <b-avatar v-if="message.role === 'user'" variant="info" icon="person"></b-avatar>
                     </div>
                 </div>
@@ -27,7 +28,6 @@
                             <span v-else>Send</span>
                         </b-button>
                     </b-input-group>
-
                 </b-form>
             </b-card-footer>
         </b-card>
@@ -35,6 +35,8 @@
 </template>
 
 <script>
+import { marked } from 'marked';
+
 export default {
     name: 'Chatbot',
     data() {
@@ -58,6 +60,10 @@ export default {
         this.scrollToBottom();
     },
     methods: {
+        formatMessage(content) {
+            // Convert markdown to HTML
+            return marked(content);
+        },
         async sendMessage() {
             if (!this.userInput.trim() || this.isLoading) return;
 
@@ -92,7 +98,7 @@ export default {
                         "messages": [
                             {
                                 role: 'system',
-                                content: 'You are a supportive change management assistant. Help users manage their emotions during organizational change. Provide empathetic, practical advice for coping with uncertainty, stress, and resistance to change. Be concise but helpful.'
+                                content: 'You are a supportive change management assistant. Help users manage their emotions during organizational change. Provide empathetic, practical advice for coping with uncertainty, stress, and resistance to change. Be concise but helpful. Format your responses using markdown for better readability.'
                             },
                             ...messageHistory
                         ]
@@ -206,6 +212,53 @@ export default {
     background-color: #e9ecef;
     color: #212529;
     border-bottom-left-radius: 4px;
+}
+
+/* Additional styles for formatted content */
+.formatted-content {
+    white-space: normal;
+}
+
+.formatted-content ul, 
+.formatted-content ol {
+    margin: 0.5em 0;
+    padding-left: 1.5em;
+}
+
+.formatted-content li {
+    margin-bottom: 0.25em;
+}
+
+.formatted-content p {
+    margin: 0.5em 0;
+}
+
+.formatted-content h1,
+.formatted-content h2,
+.formatted-content h3,
+.formatted-content h4 {
+    margin: 0.75em 0 0.5em 0;
+}
+
+.formatted-content code {
+    background-color: rgba(0, 0, 0, 0.05);
+    padding: 0.1em 0.3em;
+    border-radius: 3px;
+    font-family: monospace;
+}
+
+.formatted-content pre {
+    background-color: rgba(0, 0, 0, 0.05);
+    padding: 0.5em;
+    border-radius: 5px;
+    overflow-x: auto;
+}
+
+.formatted-content blockquote {
+    border-left: 3px solid #ccc;
+    margin: 0.5em 0;
+    padding-left: 1em;
+    color: #666;
 }
 
 .chat-footer {
