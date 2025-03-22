@@ -40,8 +40,13 @@
     <!-- No Results Found -->
     <div class="no-results" v-else>
       <p>No matching FAQs found.</p>
-      <button class="btn ask-ai-btn" @click="askAiChatbot">
-        Ask the AI Chatbot
+    </div>
+
+    
+    <!-- New "Unanswered Questions?" Button -->
+    <div class="unanswered-container">
+      <button class="btn unanswered-btn" @click="askAiChatbot">
+        Unanswered questions? Ask a chatbot!
       </button>
     </div>
 
@@ -213,7 +218,7 @@ export default {
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            model: "openai/gpt-3.5-turbo",
+            model: "google/gemini-2.0-flash-thinking-exp:free",
             messages: this.conversation,
             max_tokens: 200
           })
@@ -242,7 +247,7 @@ export default {
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            model: "openai/gpt-3.5-turbo",
+            model: "google/gemini-2.0-flash-thinking-exp:free",
             messages: this.conversation,
             max_tokens: 200
           })
@@ -288,6 +293,45 @@ export default {
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   color: #333;
 }
+
+.unanswered-container {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.unanswered-btn {
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  color: #fff;
+  background-color: #6c757d;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.unanswered-btn:hover {
+  background-color: #5a6268;
+}
+
+.unanswered-container {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.unanswered-btn {
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  color: #fff;
+  background-color: #6c757d;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.unanswered-btn:hover {
+  background-color: #5a6268;
+}
+
 
 /* Page Title */
 .page-title {
