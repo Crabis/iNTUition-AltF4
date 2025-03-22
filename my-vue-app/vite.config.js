@@ -6,7 +6,13 @@ import { BootstrapVueNextResolver } from 'bootstrap-vue-next/resolvers';
 
 export default defineConfig({
   plugins: [
-    vue(),
+    vue({
+      template: {
+        compilerOptions: {
+          isCustomElement: tag => tag === 'b-icon' || tag.startsWith('b-icon-')
+        }
+      }
+    }),
     Components({
       resolvers: [BootstrapVueNextResolver()],
     }),
