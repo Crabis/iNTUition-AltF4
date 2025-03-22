@@ -7,6 +7,8 @@
   </template>
   
   <script>
+  import { supabase } from '@/supabase'; // Import the Supabase client
+  
   export default {
     data() {
       return {
@@ -16,7 +18,21 @@
     methods: {
       changeMessage() {
         this.message = "Thank you for visiting the About page!";
+      },
+      // Example method using Supabase
+      async fetchData() {
+        const { data, error } = await supabase
+          .from('your_table')
+          .select('*');
+        
+        if (error) console.error('Error fetching data:', error);
+        else console.log('Data:', data);
       }
+    },
+    mounted() {
+      // You can call Supabase methods when component mounts
+      this.fetchData();
     }
   };
   </script>
+  
