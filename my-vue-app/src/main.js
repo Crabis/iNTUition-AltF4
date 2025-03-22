@@ -8,6 +8,10 @@ import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue-next/dist/bootstrap-vue-next.css';
 
+// Optional: Add Bootstrap JS components if needed
+import 'bootstrap/dist/js/bootstrap.bundle.min.js'
+
+
 const app = createApp(App);
 
 // Use BootstrapVueNext
