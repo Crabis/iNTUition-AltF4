@@ -10,8 +10,8 @@ import Login from '../pages/Login.vue'
 import Register from '../pages/Register.vue'
 
 const routes = [
-    { path: '/login', name: 'Login', component: Login },
     { path: '/', component: Home },
+    { path: '/login', name: 'Login', component: Login },
     { path: '/about', component: About },
     { path: '/contact', component: Contact },
     { path: '/faq', component: FAQ },

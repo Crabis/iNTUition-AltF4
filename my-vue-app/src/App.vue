@@ -87,9 +87,10 @@ export default {
     const route = useRoute()
 
     const getUser = async () => {
-      const { data: { user: currentUser } } = await supabase.auth.getUser()
-      user.value = currentUser
+    const { data: { session } } = await supabase.auth.getSession()
+    user.value = session?.user || null
     }
+
 
     const logout = async () => {
       await supabase.auth.signOut()
@@ -97,23 +98,17 @@ export default {
       router.push('/login')
     }
 
-    onMounted(() => {
-      getUser()
-      supabase.auth.onAuthStateChange((_event, session) => {
-        user.value = session?.user || null
-        if (!session?.user && !['/login', '/register', '/forgot-password'].includes(route.path)) {
-          router.push('/login')
-        }
-      })
-    })
+    onMounted(async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    user.value = session?.user || null
 
-    // Watch for unauthenticated access
-    watchEffect(() => {
-      const publicPages = ['/login', '/register', '/forgot-password']
-      if (!user.value && !publicPages.includes(route.path)) {
+    supabase.auth.onAuthStateChange((_event, session) => {
+      user.value = session?.user || null
+      if (!session?.user && !['/login', '/register'].includes(route.path)) {
         router.push('/login')
       }
     })
+  })
 
     return { user, logout }
   }
