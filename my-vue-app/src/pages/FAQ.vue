@@ -45,10 +45,7 @@
 
         <!-- Accordion Content -->
         <transition name="accordion">
-          <div
-            v-if="activeFaqIndex === index"
-            class="faq-answer"
-          >
+          <div v-if="activeFaqIndex === index" class="faq-answer">
             <p>{{ faq.answer }}</p>
           </div>
         </transition>
@@ -62,6 +59,45 @@
         Ask the AI Chatbot
       </button>
     </div>
+
+    <!-- Chatbot Modal -->
+    <div v-if="showChatModal" class="chat-modal">
+      <div class="modal-overlay" @click="closeChatModal"></div>
+      <div class="modal-content">
+        <button class="close-btn" @click="closeChatModal">&times;</button>
+        
+        <!-- AI Chatbot Interface -->
+        <div class="ai-chatbot">
+          <h2>AI Chatbot</h2>
+
+          <!-- Chat Messages -->
+          <div class="chat-messages">
+            <div
+              v-for="(msg, idx) in conversation"
+              :key="idx"
+              :class="['chat-message', msg.role]"
+            >
+              <strong>{{ msg.role === 'user' ? 'You' : 'AI' }}:</strong>
+              <span>{{ msg.content }}</span>
+            </div>
+          </div>
+
+          <!-- Chat Input & Send Button -->
+          <div class="chat-input-section">
+            <input
+              type="text"
+              v-model="userMessage"
+              @keyup.enter="sendMessage"
+              placeholder="Type your question..."
+              class="chat-input"
+            />
+            <button class="btn send-btn" @click="sendMessage">
+              Send
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -69,9 +105,10 @@
 export default {
   data() {
     return {
+      // Search / FAQ state
       message: "Search",
       searchQuery: "",
-      activeFaqIndex: null, // For the accordion open/close
+      activeFaqIndex: null,
       faqs: [
         {
           question: "What is change management?",
@@ -108,7 +145,12 @@ export default {
           answer:
             "Reach out to your department’s Change Champion or the CMO for guidance on training, communication, and stakeholder engagement resources."
         }
-      ]
+      ],
+
+      // Modal and Chat state
+      showChatModal: false,
+      conversation: [], // Will hold user & AI messages
+      userMessage: ""   // Current user input
     };
   },
   computed: {
@@ -123,25 +165,70 @@ export default {
     }
   },
   methods: {
+    // Simulate searching
     performSearch() {
-      // Change the button text briefly
       this.message = "Please wait";
       setTimeout(() => {
         this.message = "Search";
       }, 1000);
-      // Filtering is handled by computed property "filteredFaqs"
     },
+
     // Accordion toggle
     toggleFaq(index) {
-      // If clicking the same FAQ, close it; otherwise, open the new one
       this.activeFaqIndex = this.activeFaqIndex === index ? null : index;
     },
-    // Escalate to AI Chatbot
+
+    // Open the chatbot modal
     askAiChatbot() {
-      alert(
-        `Sending your question "${this.searchQuery}" to the AI chatbot...`
-      );
-      // Here you could route to a chat page, open a modal, or call an API
+      this.showChatModal = true;
+      // Optionally clear the conversation each time:
+      // this.conversation = [];
+    },
+
+    // Close the chatbot modal
+    closeChatModal() {
+      this.showChatModal = false;
+    },
+
+    // Send user message to the AI, receive response
+    async sendMessage() {
+      const userInput = this.userMessage.trim();
+      if (!userInput) return;
+
+      // Add user's message to conversation
+      this.conversation.push({ role: "user", content: userInput });
+      this.userMessage = "";
+
+      try {
+        // Example call to OpenRouter.ai Chat endpoint
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            // Replace with your real key (not recommended on client side!)
+            "Authorization": `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY}`,
+            "Content-Type": "application/json",
+            // Must match your configured domain in OpenRouter.ai settings
+            //"HTTP-Referer": "https://your-domain.com"
+          },
+          body: JSON.stringify({
+            model: "openai/gpt-3.5-turbo", // or other models
+            messages: this.conversation,
+            max_tokens: 200
+          })
+        });
+
+        const data = await response.json();
+        // AI's reply typically in data.choices[0].message.content
+        const aiReply = data?.choices?.[0]?.message?.content || "No response received.";
+
+        this.conversation.push({ role: "assistant", content: aiReply });
+      } catch (error) {
+        console.error("Error calling OpenRouter.ai:", error);
+        this.conversation.push({
+          role: "assistant",
+          content: "Sorry, I couldn't process your request."
+        });
+      }
     }
   }
 };
@@ -262,7 +349,7 @@ export default {
   font-weight: 500;
   border: none;
   color: #fff;
-  background-color: #6c757d; /* greyish */
+  background-color: #6c757d;
   padding: 8px 16px;
   border-radius: 4px;
   transition: background 0.2s ease-in-out;
@@ -272,8 +359,6 @@ export default {
 }
 
 /* TRANSITIONS & ANIMATIONS */
-
-/* Fade in/out for FAQ list items */
 .faq-list-enter-active,
 .faq-list-leave-active {
   transition: all 0.3s ease;
@@ -283,8 +368,6 @@ export default {
   opacity: 0;
   transform: translateY(-10px);
 }
-
-/* Accordion expand/collapse */
 .accordion-enter-active,
 .accordion-leave-active {
   transition: max-height 0.3s ease, opacity 0.3s ease;
@@ -294,7 +377,7 @@ export default {
   opacity: 0;
 }
 .accordion-enter-to {
-  max-height: 500px; /* large enough to fit your text */
+  max-height: 500px;
   opacity: 1;
 }
 .accordion-leave {
@@ -304,5 +387,92 @@ export default {
 .accordion-leave-to {
   max-height: 0;
   opacity: 0;
+}
+
+/* Chatbot Modal Styles */
+.chat-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1000;
+}
+.modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+}
+.modal-content {
+  position: relative;
+  background: #fff;
+  margin: 5% auto;
+  padding: 20px;
+  max-width: 600px;
+  border-radius: 8px;
+  z-index: 1001;
+}
+.close-btn {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+/* AI Chatbot */
+.ai-chatbot {
+  margin-top: 1rem;
+}
+
+/* Chat messages container */
+.chat-messages {
+  max-height: 300px; /* or any desired height */
+  overflow-y: auto;
+  background: #f9f9f9;
+  border-radius: 5px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  text-align: left;
+}
+
+/* Individual messages */
+.chat-message {
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+.chat-message.user {
+  text-align: right;
+}
+.chat-message.assistant {
+  text-align: left;
+}
+
+/* Input & Send button container */
+.chat-input-section {
+  display: flex;
+  gap: 8px;
+}
+.chat-input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  outline: none;
+}
+.send-btn {
+  border: none;
+  background-color: #007bff;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 4px;
+}
+.send-btn:hover {
+  background-color: #0056b3;
 }
 </style>
