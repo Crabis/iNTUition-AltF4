@@ -361,14 +361,15 @@ export default {
               {
                 role: 'system',
                 content: 'You are Jim, a helpful change management expert. You always respond in a professional tone regardless of the prompt. Provide clear, concise, and professional answers formatted in markdown.'
-              },
-              ...sanitizedConversation.filter(msg => msg.role !== "assistant" || msg.content !== "...")
+              }
+              // ...sanitizedConversation.filter(msg => msg.role !== "assistant" || msg.content !== "...")
             ]
           })
         });
         const data = await response.json();
         // Remove the temporary loading message
         this.conversation.pop();
+        console.log(data)
         const aiReply = data?.choices?.[0]?.message?.content || "No response received.";
         this.conversation.push({ role: "assistant", content: aiReply });
       } catch (error) {
