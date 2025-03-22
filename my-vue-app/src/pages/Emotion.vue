@@ -39,8 +39,6 @@
   </template>
   
   <script>
-  import OpenAI from 'openai';
-  
   export default {
     name: 'Chatbot',
     data() {
@@ -52,21 +50,10 @@
             content: 'Hello! I\'m your Change Management Assistant. I can help you manage emotions and stress during organizational transitions. How are you feeling about the changes in your organization?'
           }
         ],
-        isLoading: false,
-        openai: null
+        isLoading: false
       };
     },
     mounted() {
-      // Initialize OpenRouter.ai client using OpenAI SDK
-      this.openai = new OpenAI({
-        baseURL: 'https://openrouter.ai/api/v1',
-        apiKey: process.env.VUE_APP_OPENROUTER_API_KEY, // Set this in your .env file
-        defaultHeaders: {
-          'HTTP-Referer': window.location.origin,
-          'X-Title': 'Change Management Assistant',
-        },
-      });
-      
       // Scroll to bottom of chat
       this.scrollToBottom();
     },
@@ -95,17 +82,28 @@
             content: msg.content
           }));
           
-          // Call OpenRouter.ai API
-          const completion = await this.openai.chat.completions.create({
-            model: 'openai/gpt-4o', // You can change to another model
-            messages: [
-              {
-                role: 'system',
-                content: 'You are a supportive change management assistant. Help users manage their emotions during organizational change. Provide empathetic, practical advice for coping with uncertainty, stress, and resistance to change. Be concise but helpful.'
-              },
-              ...messageHistory
-            ]
+          // Call OpenRouter.ai API using fetch
+          const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${process.env.VUE_APP_OPENROUTER_API_KEY}`,
+              "HTTP-Referer": window.location.origin, // Site URL for rankings on openrouter.ai
+              "X-Title": "Change Management Assistant", // Site title for rankings on openrouter.ai
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              "model": "google/gemini-2.0-flash-thinking-exp:free", // Using Gemini model as specified
+              "messages": [
+                {
+                  role: 'system',
+                  content: 'You are a supportive change management assistant. Help users manage their emotions during organizational change. Provide empathetic, practical advice for coping with uncertainty, stress, and resistance to change. Be concise but helpful.'
+                },
+                ...messageHistory
+              ]
+            })
           });
+          
+          const completion = await response.json();
           
           // Add AI response to messages
           if (completion.choices && completion.choices[0]) {
