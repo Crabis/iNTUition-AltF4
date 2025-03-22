@@ -1,4 +1,5 @@
 import { buildMetadataPrompt, getContextFromMetadata, buildFinalPrompt } from '@/utils/dualPrompt'
+import { timelinePrompt } from './dualPrompt';
 
 async function callOpenRouter(prompt) {
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -48,11 +49,22 @@ export async function getChangePlanRecommendations(userPrompt, fileText) {
 
     // Step 4: Final call for recommendation
     const recommendation = await callOpenRouter(finalPrompt)
-    return recommendation
-  } catch (err) {
+    return {
+        rec: recommendation, 
+        context : context
+    }} catch (err) {
     console.error('[AI Error]', err)
     throw new Error('Failed to generate AI recommendation.')
   }
 }
 
-
+export async function getTimeline(data){
+    try{
+    console.log(data)
+    const timeline = await callOpenRouter(timelinePrompt(data))
+    return timeline
+    }catch(err){
+        console.error('[Timeline Error]', err)
+        throw new Error('Failed to generate timeline.')
+    }
+}

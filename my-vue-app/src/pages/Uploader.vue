@@ -184,6 +184,9 @@
                   <i class="bi bi-calendar me-1"></i> {{ currentDate }}
                 </span>
               </div>
+              <button class="btn btn-sm btn-outline-secondary" @click="saveTimeline">
+                    {{ Save ? 'Save' : 'Show' }} Save
+                </button>
 
               <div class="d-flex gap-2">
                 <button class="btn btn-outline-primary" @click="downloadPdf">
@@ -258,7 +261,7 @@
 import { ref } from 'vue'
 import * as mammoth from 'mammoth'
 import { marked } from 'marked'
-import { getChangePlanRecommendations } from '@/utils/apiService'
+import { getChangePlanRecommendations, getTimeline } from '@/utils/apiService'
 import * as pdfjsLib from 'pdfjs-dist'
 
 // Use import.meta.url to correctly reference the worker
@@ -273,7 +276,8 @@ const showPreview = ref(false)
 const fileIcon = ref('bi-file-earmark')
 const generationTime = ref('3.2')
 const currentDate = ref(new Date().toLocaleDateString())
-
+const aiRecommendationText = ref('')
+const aiName = ref('')
 
 
 function downloadPdf() {
@@ -365,13 +369,22 @@ async function sendToAPI() {
   loading.value = true
   try {
     const result = await getChangePlanRecommendations(userPrompt.value, fileText.value)
-    apiResponse.value = marked(result)
+    apiResponse.value = marked(result.rec)
+    aiRecommendationText.value = result.rec
+    aiName.value = result.context
+    console.log(result.rec)
+    console.log(result.context.model.name)
   } catch (err) {
     console.error(err)
     apiResponse.value = '<div class="alert alert-danger"><i class="bi bi-exclamation-triangle me-2"></i>Failed to generate AI recommendations. Please try again later.</div>'
   } finally {
     loading.value = false
   }
+}
+
+async function saveTimeline() {
+    const response = await getTimeline(aiRecommendationText.value)
+    console.log(response)
 }
 </script>
 <style>

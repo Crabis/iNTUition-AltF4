@@ -104,8 +104,47 @@ export function buildMetadataPrompt(changeText) {
   ${modelBlock}
   
   Generate a step-by-step implementation strategy and a suggested timeline.
+  Generate at least 4 different phases for the timeline starting from Q2 2025, following the same structure as the rest of the text.
+  The implementation strategy must be separated from the timeline. The timeline must cointain the following points, date (i.e. Q2 2025), subdate (i.e. what phase), title, subtitle, description.
+  Proceed to generate the rest of the strategy based on the context.
   DO NOT FORMAT THE DATA IN A TABLE.
   `.trim()
   }
   
-  
+
+  export function timelinePrompt(response){
+    console.log(response)
+    return `
+    Based on the following context:
+    ---
+    ${response}
+    ---
+    From the timeline at the bottom, extract the following data points:
+    -date (i.e. Q2 2025)
+    -subdate (i.e. what phase)
+    -title 
+    -subtitle
+    -description
+
+    Respond ONLY with a JSON object in this format based on the extracted points:
+    {
+    "items": [
+        {
+        "date": "Q4 2025",
+        "subdate": "Growth Phase",
+        "title": "Loyalty Program",
+        "subtitle": "Customer Retention",
+        "description": "Launching rewards system to increase customer lifetime value."
+        },
+        {
+        "date": "Q3 2025",
+        "subdate": "Expansion Phase",
+        "title": "Channel Diversification",
+        "subtitle": "Multi-platform Strategy",
+        "description": "Expanding marketing efforts to new platforms and partnerships."
+        }
+        // DO NOT OMIT ANY ITEM. Continue until all timeline items are extracted.
+    ]
+    }
+    `
+  }
