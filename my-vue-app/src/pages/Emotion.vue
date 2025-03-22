@@ -82,7 +82,7 @@ export default {
                 const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
                     method: "POST",
                     headers: {
-                        "Authorization": `Bearer ${process.env.VUE_APP_OPENROUTER_API_KEY}`,
+                        "Authorization": `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY}`,
                         "HTTP-Referer": window.location.origin, // Site URL for rankings on openrouter.ai
                         "X-Title": "Change Management Assistant", // Site title for rankings on openrouter.ai
                         "Content-Type": "application/json"
