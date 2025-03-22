@@ -28,7 +28,7 @@
   
       <div v-if="apiResponse" class="mt-6">
         <h2 class="text-lg font-semibold">AI Recommendations:</h2>
-        <pre class="p-2 bg-green-100 border rounded whitespace-pre-wrap">{{ apiResponse }}</pre>
+        <span v-html="apiResponse"></span>
       </div>
     </div>
   </template>
@@ -37,6 +37,7 @@
   import { ref } from 'vue'
   import * as mammoth from 'mammoth'
   import * as pdfjsLib from 'pdfjs-dist'
+  import { marked } from 'marked'
   import { getChangePlanRecommendations } from '@/utils/apiService'
   
   const fileText = ref('')
@@ -87,7 +88,7 @@
     loading.value = true
     try {
       const result = await getChangePlanRecommendations(userPrompt.value, fileText.value)
-      apiResponse.value = result
+      apiResponse.value = marked(result)
     } catch (err) {
       console.error(err)
       apiResponse.value = '❌ Failed to generate AI recommendations.'
