@@ -265,6 +265,7 @@ import { getChangePlanRecommendations, getTimeline } from '@/utils/apiService'
 import * as pdfjsLib from 'pdfjs-dist'
 import { v4 as uuidv4 } from 'uuid'
 import { supabase } from '@/supabase'
+import { jsPDF } from 'jspdf';
 
 // Use import.meta.url to correctly reference the worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).href
@@ -283,20 +284,21 @@ const aiName = ref('')
 const aiTimeline = ref('')
 
 
+
 function downloadPdf() {
-  // Create element <a> for downloading PDF
-  const link = document.createElement('a');
-
-  // You can replace this with the actual PDF URL
-  const pdfUrl = '/path/to/your/file.pdf';
-
-  link.href = pdfUrl;
-  link.download = 'document.pdf';
-
-  // Simulate a click on the element
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  // Create new PDF document
+  const doc = new jsPDF();
+  
+  // Add content from the AI recommendations
+  doc.text("AI Recommendations", 20, 20);
+  
+  // If you have HTML content, you might need html2canvas
+  // This is a simplified example
+  const plainText = apiResponse.value.replace(/<[^>]*>/g, '');
+  doc.text(plainText, 20, 30);
+  
+  // Save the PDF
+  doc.save('recommendations.pdf');
 }
 
 
