@@ -185,7 +185,7 @@
                 </span>
               </div>
               <button class="btn btn-sm btn-outline-secondary" @click="saveTimeline">
-                    {{ Save ? 'Save' : 'Show' }} Save
+                     Save Project
                 </button>
 
               <div class="d-flex gap-2">
@@ -263,6 +263,8 @@ import * as mammoth from 'mammoth'
 import { marked } from 'marked'
 import { getChangePlanRecommendations, getTimeline } from '@/utils/apiService'
 import * as pdfjsLib from 'pdfjs-dist'
+import { v4 as uuidv4 } from 'uuid'
+import { supabase } from '@/supabase'
 
 // Use import.meta.url to correctly reference the worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).href
@@ -278,6 +280,7 @@ const generationTime = ref('3.2')
 const currentDate = ref(new Date().toLocaleDateString())
 const aiRecommendationText = ref('')
 const aiName = ref('')
+const aiTimeline = ref('')
 
 
 function downloadPdf() {
@@ -371,7 +374,7 @@ async function sendToAPI() {
     const result = await getChangePlanRecommendations(userPrompt.value, fileText.value)
     apiResponse.value = marked(result.rec)
     aiRecommendationText.value = result.rec
-    aiName.value = result.context
+    aiName.value = result.context.model.name
     console.log(result.rec)
     console.log(result.context.model.name)
   } catch (err) {
@@ -383,9 +386,58 @@ async function sendToAPI() {
 }
 
 async function saveTimeline() {
+  const projectName = prompt('Enter a Project Name')
+
+  if (!projectName) {
+    alert('Project name is required to save.')
+    return
+  }
+
+  try {
     const response = await getTimeline(aiRecommendationText.value)
+    const cleaned = cleanJsonString(response)
+    const aiTimelines = JSON.parse(cleaned)
+    console.log("Parsed the JSON")
+    const projectID = uuidv4()
+    const { data: session, error: sessionError } = await supabase.auth.getSession()
+    const userID = session.session.user.id
+    const { error1 } = await supabase.from('ongoingProjects').insert([
+      {
+        userID : userID,
+        projectID: projectID,
+        ongoing: true
+      }])
+    const { data, error } = await supabase.from('projectDetails').insert([
+      {
+        projectID: projectID,
+        projectName: projectName,
+        timeline: aiTimelines, // assuming response is already JSON
+        frameworkUsed: aiName.value
+      }
+    ])
     console.log(response)
+
+    // if (error) {
+    //   console.error('Supabase insert error:', error)
+    //   alert('❌ Failed to save project.')
+    // } else {
+    //   alert('✅ Project saved successfully!')
+    //   console.log('Saved data:', data)
+    // }
+  } catch (err) {
+    console.error('Error generating timeline or saving:', err)
+    alert('❌ An error occurred during save.')
+  }
 }
+
+function cleanJsonString(rawString) {
+  // Remove wrapping ```json and ``` if they exist
+  return rawString
+    .replace(/^```json\s*/i, '')   // Remove ```json at start
+    .replace(/```$/, '')           // Remove trailing ```
+    .trim()
+}
+
 </script>
 <style>
 /* Base styles */
