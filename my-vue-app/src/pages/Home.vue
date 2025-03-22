@@ -26,10 +26,9 @@
             </h6>
             <ul class="nav flex-column">
               <li class="nav-item" v-for="(dataset, index) in roadmapData" :key="index">
-                <a class="nav-link d-flex align-items-center" 
-                   :class="{ 'active bg-primary text-white': selectedProjectIndex === index }"
-                   href="#" 
-                   @click.prevent="selectProject(index)">
+                <a class="nav-link d-flex align-items-center"
+                  :class="{ 'active bg-primary text-white': selectedProjectIndex === index }" href="#"
+                  @click.prevent="selectProject(index)">
                   <i class="bi bi-kanban me-2"></i>
                   {{ dataset.title }}
                   <span v-if="selectedProjectIndex === index" class="ms-auto">
@@ -43,7 +42,8 @@
 
         <!-- Main Content -->
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
-          <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+          <div
+            class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
             <h1 class="h2">{{ selectedProject ? selectedProject.title : 'Dashboard' }}</h1>
 
           </div>
@@ -65,7 +65,8 @@
                         <li v-for="(item, itemIndex) in selectedProject.items" :key="itemIndex" class="timeline-item">
                           <div class="timeline-body">
                             <div class="timeline-meta">
-                              <div class="d-inline-flex flex-column px-3 py-2 text-success-emphasis bg-success-subtle border border-success-subtle rounded-3 text-md-end">
+                              <div
+                                class="d-inline-flex flex-column px-3 py-2 text-success-emphasis bg-success-subtle border border-success-subtle rounded-3 text-md-end">
                                 <span class="fw-bold">{{ item.date || 'No Date' }}</span>
                                 <span v-if="item.subdate" class="text-muted small">{{ item.subdate }}</span>
                               </div>
@@ -74,7 +75,8 @@
                               <div class="card border-0 shadow-sm">
                                 <div class="card-body p-4">
                                   <h4 class="card-title mb-2">{{ item.title }}</h4>
-                                  <h6 v-if="item.subtitle" class="card-subtitle text-muted mb-3">{{ item.subtitle }}</h6>
+                                  <h6 v-if="item.subtitle" class="card-subtitle text-muted mb-3">{{ item.subtitle }}
+                                  </h6>
                                   <p class="card-text">{{ item.description }}</p>
                                 </div>
                               </div>
@@ -107,142 +109,12 @@
 </template>
 
 <script>
+import { supabase } from '@/supabase';
 export default {
   name: 'Home',
   data() {
     return {
-      roadmapData: [
-  {
-    title: "Project Alpha Roadmap",
-    items: [
-      {
-        date: "2025 - Present",
-        subdate: "Phase 3",
-        title: "Market Expansion",
-        subtitle: "Global Rollout",
-        description: "Expanding to international markets with localized features."
-      },
-      {
-        date: "2024 - 2025",
-        subdate: "Phase 2",
-        title: "Feature Enhancement",
-        subtitle: "Version 2.0",
-        description: "Adding advanced features based on user feedback."
-      },
-      {
-        date: "2023 - 2024",
-        subdate: "Phase 1",
-        title: "Initial Launch",
-        subtitle: "Version 1.0",
-        description: "Core functionality release with essential features."
-      }
-    ]
-  },
-  {
-    title: "DevOps Implementation Roadmap",
-    items: [
-      {
-        date: "Q3 2025",
-        subdate: "Final Phase",
-        title: "Continuous Optimization",
-        subtitle: "Performance Tuning",
-        description: "Refining processes and enhancing monitoring systems."
-      },
-      {
-        date: "Q2 2025",
-        subdate: "Phase 2",
-        title: "Pipeline Automation",
-        subtitle: "CI/CD Implementation",
-        description: "Establishing automated testing and deployment workflows."
-      },
-      {
-        date: "Q1 2025",
-        subdate: "Phase 1",
-        title: "Infrastructure Setup",
-        subtitle: "Foundation Building",
-        description: "Implementing core DevOps tools and establishing best practices."
-      }
-    ]
-  },
-  {
-    title: "Product Marketing Roadmap",
-    items: [
-      {
-        date: "Q4 2025",
-        subdate: "Growth Phase",
-        title: "Loyalty Program",
-        subtitle: "Customer Retention",
-        description: "Launching rewards system to increase customer lifetime value."
-      },
-      {
-        date: "Q3 2025",
-        subdate: "Expansion Phase",
-        title: "Channel Diversification",
-        subtitle: "Multi-platform Strategy",
-        description: "Expanding marketing efforts to new platforms and partnerships."
-      },
-      {
-        date: "Q2 2025",
-        subdate: "Launch Phase",
-        title: "Market Penetration",
-        subtitle: "Initial Campaigns",
-        description: "Executing targeted campaigns to establish market presence."
-      }
-    ]
-  },
-  {
-    title: "IT Transformation Roadmap",
-    items: [
-      {
-        date: "2026",
-        subdate: "Innovation Phase",
-        title: "AI Integration",
-        subtitle: "Smart Systems",
-        description: "Implementing machine learning solutions across departments."
-      },
-      {
-        date: "2025",
-        subdate: "Modernization Phase",
-        title: "Cloud Migration",
-        subtitle: "Infrastructure Upgrade",
-        description: "Moving legacy systems to cloud-based architecture."
-      },
-      {
-        date: "2024",
-        subdate: "Assessment Phase",
-        title: "System Audit",
-        subtitle: "Gap Analysis",
-        description: "Evaluating current systems and identifying improvement opportunities."
-      }
-    ]
-  },
-  {
-    title: "Agile Implementation Roadmap",
-    items: [
-      {
-        date: "Q4 2025",
-        subdate: "Optimization",
-        title: "Continuous Improvement",
-        subtitle: "Metrics & Refinement",
-        description: "Establishing KPIs and refining agile practices based on team feedback."
-      },
-      {
-        date: "Q3 2025",
-        subdate: "Scaling",
-        title: "Cross-team Coordination",
-        subtitle: "Enterprise Adoption",
-        description: "Expanding agile methodologies across multiple departments."
-      },
-      {
-        date: "Q2 2025",
-        subdate: "Implementation",
-        title: "Team Transition",
-        subtitle: "Sprint Adoption",
-        description: "Transitioning pilot teams to scrum framework and sprint cycles."
-      }
-    ]
-  }
-],
+      roadmapData: [],
       selectedProjectIndex: 0
     }
   },
@@ -258,7 +130,32 @@ export default {
     },
     selectProject(index) {
       this.selectedProjectIndex = index;
+    },
+    async fetchData() {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      // Assuming ongoingProjects has a user_id column that references the authenticated user
+      const { data, error } = await supabase
+        .from('ongoingProjects')
+        .select(`
+    projectDetails (timeline)
+  `)
+        .eq('userID', user.id); // Use the appropriate column that links to the user
+
+      if (error) console.error('Error fetching data:', error);
+      else { console.log(data); 
+      for(let i of data){
+        let response =i.projectDetails
+        this.roadmapData.push(response.timeline)
+      }
+      }
+
+      
     }
+
+  },
+  mounted() {
+    this.fetchData();
   }
 }
 </script>
@@ -360,16 +257,16 @@ export default {
     height: auto;
     padding-top: 0;
   }
-  
+
   .bsb-timeline-7 .timeline::before {
     left: 1rem;
   }
-  
+
   .bsb-timeline-7 .timeline-body {
     flex-direction: column;
     align-items: flex-start;
   }
-  
+
   .bsb-timeline-7 .timeline-meta,
   .bsb-timeline-7 .timeline-content {
     flex: 0 0 100%;
@@ -377,11 +274,11 @@ export default {
     padding: 0;
     text-align: left;
   }
-  
+
   .bsb-timeline-7 .timeline-meta {
     margin-bottom: 0.5rem;
   }
-  
+
   .bsb-timeline-7 .timeline-indicator::before {
     left: -2rem;
     top: 0.75rem;
