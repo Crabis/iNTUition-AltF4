@@ -3,9 +3,17 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
       <div class="container">
         <a class="navbar-brand" href="#">VueApp</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <button
+          class="navbar-toggler"
+          type="button"
+          @click="toggleNavbar"
+          aria-controls="navbarNav"
+          :aria-expanded="isExpanded"
+          aria-label="Toggle navigation"
+        >
           <span class="navbar-toggler-icon"></span>
         </button>
+
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav me-auto">
             <li class="nav-item">
@@ -51,6 +59,24 @@
 
 <script>
 export default {
-  name: 'App'
+  name: 'App',
+  data() {
+    return {
+      isExpanded: false
+    }
+  },
+  methods: {
+    toggleNavbar() {
+      const navbar = document.getElementById('navbarNav');
+      let bsCollapse = window.bootstrap.Collapse.getInstance(navbar);
+      if (!bsCollapse) {
+        // If the Collapse instance is not already created, create one
+        bsCollapse = new window.bootstrap.Collapse(navbar, { toggle: false });
+      }
+      bsCollapse.toggle();
+      this.isExpanded = !this.isExpanded;
+    }
+  }
 };
+
 </script>
