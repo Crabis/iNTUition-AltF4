@@ -36,7 +36,7 @@
             </li>
           </ul>
           <ul class="navbar-nav">
-            <li class="nav-item dropdown">
+            <li v-if="user" class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                 Profile
               </a>
@@ -44,13 +44,14 @@
                 <li><router-link class="dropdown-item" to="/profile">My Profile</router-link></li>
                 <li><router-link class="dropdown-item" to="/settings">Settings</router-link></li>
                 <li><hr class="dropdown-divider"></li>
-                <li><router-link class="dropdown-item" to="/logout">Logout</router-link></li>
+                <li><button class="dropdown-item" @click="logout">Logout</button></li>
               </ul>
             </li>
           </ul>
         </div>
       </div>
     </nav>
+
     <div class="container mt-4">
       <router-view></router-view>
     </div>
@@ -58,6 +59,10 @@
 </template>
 
 <script>
+import { onMounted, ref, watchEffect } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { supabase } from '@/supabase'
+
 export default {
   name: 'App',
   data() {
@@ -77,6 +82,42 @@ export default {
       this.isExpanded = !this.isExpanded;
     }
   }
-};
+  setup() {
+    const user = ref(null)
+    const router = useRouter()
+    const route = useRoute()
 
+    const getUser = async () => {
+      const { data: { user: currentUser } } = await supabase.auth.getUser()
+      user.value = currentUser
+    }
+
+    const logout = async () => {
+      await supabase.auth.signOut()
+      user.value = null
+      router.push('/login')
+    }
+
+    onMounted(() => {
+      getUser()
+      supabase.auth.onAuthStateChange((_event, session) => {
+        user.value = session?.user || null
+        if (!session?.user && !['/login', '/register', '/forgot-password'].includes(route.path)) {
+          router.push('/login')
+        }
+      })
+    })
+
+    // Watch for unauthenticated access
+    watchEffect(() => {
+      const publicPages = ['/login', '/register', '/forgot-password']
+      if (!user.value && !publicPages.includes(route.path)) {
+        router.push('/login')
+      }
+    })
+
+    return { user, logout }
+  }
+};
 </script>
+

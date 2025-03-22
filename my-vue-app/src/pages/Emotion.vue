@@ -228,6 +228,7 @@ export default {
                 });
             } finally {
                 this.isLoading = false;
+                this.userInput = '';
             }
         },
         scrollToBottom() {
