@@ -17,8 +17,7 @@
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav me-auto">
             <li class="nav-item">
-              <router-link class="nav-link" to="/">Home</router-link>
-            </li>
+              <router-link class="nav-link" to="/">Home</router-link></li>
             <li class="nav-item">
               <router-link class="nav-link" to="/about">About</router-link>
             </li>
@@ -81,7 +80,7 @@ export default {
       bsCollapse.toggle();
       this.isExpanded = !this.isExpanded;
     }
-  }
+  },
   setup() {
     const user = ref(null)
     const router = useRouter()
