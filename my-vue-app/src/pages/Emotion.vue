@@ -35,13 +35,16 @@
                     <h5>Welcome to your Change Management Assistant</h5>
                     <p>I'm here to help you navigate organizational change with confidence and resilience.</p>
                     <div class="quick-prompts">
-                        <b-button variant="outline-primary" size="sm" @click="useQuickPrompt('I\'m feeling anxious about the upcoming reorganization')">
+                        <b-button variant="outline-primary" size="sm"
+                            @click="useQuickPrompt('I\'m feeling anxious about the upcoming reorganization')">
                             I'm feeling anxious about changes
                         </b-button>
-                        <b-button variant="outline-primary" size="sm" @click="useQuickPrompt('How can I help my team adapt to new processes?')">
+                        <b-button variant="outline-primary" size="sm"
+                            @click="useQuickPrompt('How can I help my team adapt to new processes?')">
                             Supporting my team
                         </b-button>
-                        <b-button variant="outline-primary" size="sm" @click="useQuickPrompt('What are some change management best practices?')">
+                        <b-button variant="outline-primary" size="sm"
+                            @click="useQuickPrompt('What are some change management best practices?')">
                             Change management tips
                         </b-button>
                     </div>
@@ -51,12 +54,15 @@
                     <div v-for="(message, index) in messages" :key="index"
                         :class="['message', message.role === 'user' ? 'user-message' : 'bot-message']">
                         <div class="avatar-container" v-if="message.role !== 'user'">
-                            <b-avatar variant="primary" src="@/assets/assistant-avatar.png" class="assistant-avatar"></b-avatar>
+                            <b-avatar variant="primary" src="@/assets/assistant-avatar.png"
+                                class="assistant-avatar"></b-avatar>
                         </div>
                         <div class="message-content" v-if="message.role === 'user'">{{ message.content }}</div>
-                        <div class="message-content formatted-content" v-else v-html="formatMessage(message.content)"></div>
+                        <div class="message-content formatted-content" v-else v-html="formatMessage(message.content)">
+                        </div>
                         <div class="avatar-container" v-if="message.role === 'user'">
-                            <b-avatar variant="info" :src="userAvatar || undefined" :icon="!userAvatar ? 'person' : undefined" class="user-avatar"></b-avatar>
+                            <b-avatar variant="info" :src="userAvatar || undefined"
+                                :icon="!userAvatar ? 'person' : undefined" class="user-avatar"></b-avatar>
                         </div>
                     </div>
                     <div class="typing-indicator" v-if="isLoading">
@@ -100,32 +106,17 @@
                     </b-button>
                 </div>
                 <b-form @submit.prevent="sendMessage" class="message-form">
-    <b-input-group>
-      <b-form-textarea
-        v-model="userInput"
-        placeholder="Type your concerns about change management..."
-        :disabled="isLoading"
-        rows="1"
-        max-rows="4"
-        class="message-input"
-        @keydown.enter.exact.prevent="sendMessage"
-      ></b-form-textarea>
-      <b-input-group-append>
-        <b-button 
-          type="submit" 
-          variant="primary" 
-          :disabled="isLoading || !userInput.trim()" 
-          class="send-button"
-        >
-          <b-spinner small v-if="isLoading"></b-spinner>
-          <template v-else>
-            <span class="d-none d-md-inline">Send</span>
-            <b-icon icon="arrow-right" font-scale="1.2" class="ml-2"></b-icon>
-          </template>
-        </b-button>
-      </b-input-group-append>
-    </b-input-group>
-  </b-form>
+                    <b-input-group>
+                        <b-form-textarea v-model="userInput" placeholder="Type your concerns about change management..."
+                            :disabled="isLoading" rows="1" max-rows="4" class="message-input"
+                            @keydown.enter.exact.prevent="sendMessage"></b-form-textarea>
+                        <b-button type="submit" variant="primary" :disabled="isLoading || !userInput.trim()"
+                            class="send-button">
+                            <b-spinner small v-if="isLoading"></b-spinner>
+                            <span v-else>Send</span>
+                        </b-button>
+                    </b-input-group>
+                </b-form>
             </b-card-footer>
         </b-card>
     </div>
@@ -154,7 +145,7 @@ export default {
     mounted() {
         // Scroll to bottom of chat
         this.scrollToBottom();
-        
+
         // Check for saved theme preference
         const savedTheme = localStorage.getItem('chatTheme');
         if (savedTheme === 'dark') {
@@ -170,13 +161,13 @@ export default {
         formatMessage(content) {
             // Convert markdown to HTML and enhance with custom formatting
             let formattedContent = marked(content);
-            
+
             // Replace certain patterns with custom HTML that includes icons
             formattedContent = formattedContent.replace(
-                /<h3>Tip:(.*?)<\/h3>/gi, 
+                /<h3>Tip:(.*?)<\/h3>/gi,
                 '<div class="tip-box"><b-icon icon="lightbulb" font-scale="1.2"></b-icon><h3>Tip:$1</h3></div>'
             );
-            
+
             return formattedContent;
         },
         async sendMessage() {
@@ -374,7 +365,8 @@ body.dark-mode {
     color: var(--text-light);
 }
 
-.status-indicator, .emotion-indicator {
+.status-indicator,
+.emotion-indicator {
     display: flex;
     align-items: center;
 }
@@ -467,8 +459,15 @@ body.dark-mode {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .user-message {
@@ -486,7 +485,8 @@ body.dark-mode {
     align-items: center;
 }
 
-.assistant-avatar, .user-avatar {
+.assistant-avatar,
+.user-avatar {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
@@ -541,15 +541,23 @@ body.dark-mode {
 }
 
 @keyframes bounce {
-    0%, 60%, 100% { transform: translateY(0); }
-    30% { transform: translateY(-4px); }
+
+    0%,
+    60%,
+    100% {
+        transform: translateY(0);
+    }
+
+    30% {
+        transform: translateY(-4px);
+    }
 }
 
 .formatted-content {
     white-space: normal;
 }
 
-.formatted-content ul, 
+.formatted-content ul,
 .formatted-content ol {
     margin: 0.5em 0;
     padding-left: 1.5em;
@@ -685,13 +693,13 @@ body.dark-mode {
 }
 
 .message-form {
-  display: flex;
+    display: flex;
 }
 
 .message-input {
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
-  resize: none;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    resize: none;
 }
 
 .message-input:focus {
@@ -700,12 +708,12 @@ body.dark-mode {
 }
 
 .send-button {
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.375rem 0.75rem;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.375rem 0.75rem;
 }
 
 .send-button:hover:not(:disabled) {
@@ -720,8 +728,9 @@ body.dark-mode {
 
 @media (max-width: 768px) {
     .send-button {
-    padding: 0.375rem 0.5rem;
-  }
+        padding: 0.375rem 0.5rem;
+    }
+
     .chatbot-container {
         height: 100vh;
         max-width: 100%;
