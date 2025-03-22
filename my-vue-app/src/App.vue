@@ -1,6 +1,7 @@
 <template>
   <div>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <!-- Only show navbar if not on login or register pages -->
+    <nav v-if="!isAuthPage" class="navbar navbar-expand-lg navbar-light bg-light">
       <div class="container">
         <a class="navbar-brand" href="#">VueApp</a>
         <button
@@ -51,14 +52,14 @@
       </div>
     </nav>
 
-    <div class="container mt-4">
+    <div :class="{'container mt-4': !isAuthPage, 'auth-container': isAuthPage}">
       <router-view></router-view>
     </div>
   </div>
 </template>
 
 <script>
-import { onMounted, ref, watchEffect } from 'vue'
+import { onMounted, ref, watchEffect, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { supabase } from '@/supabase'
 
@@ -86,11 +87,15 @@ export default {
     const router = useRouter()
     const route = useRoute()
 
-    const getUser = async () => {
-    const { data: { session } } = await supabase.auth.getSession()
-    user.value = session?.user || null
-    }
+    // Computed property to check if current route is login or register
+    const isAuthPage = computed(() => {
+      return route.path === '/login' || route.path === '/register'
+    })
 
+    const getUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      user.value = session?.user || null
+    }
 
     const logout = async () => {
       await supabase.auth.signOut()
@@ -99,19 +104,28 @@ export default {
     }
 
     onMounted(async () => {
-    const { data: { session } } = await supabase.auth.getSession()
-    user.value = session?.user || null
-
-    supabase.auth.onAuthStateChange((_event, session) => {
+      const { data: { session } } = await supabase.auth.getSession()
       user.value = session?.user || null
-      if (!session?.user && !['/login', '/register'].includes(route.path)) {
-        router.push('/login')
-      }
-    })
-  })
 
-    return { user, logout }
+      supabase.auth.onAuthStateChange((_event, session) => {
+        user.value = session?.user || null
+        if (!session?.user && !['/login', '/register'].includes(route.path)) {
+          router.push('/login')
+        }
+      })
+    })
+
+    return { user, logout, isAuthPage }
   }
 };
 </script>
 
+<style>
+/* Optional: Add some styling for auth pages if needed */
+.auth-container {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+</style>
