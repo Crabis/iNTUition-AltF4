@@ -25,7 +25,9 @@ export function buildMetadataPrompt(changeText) {
   // Step 2: Simulated local context store (can be replaced with imports)
   import frameworks from '@/data/frameworks.json'
   import caseStudies from '@/data/caseStudies.json'
-  import trends from '@/data/trends.json'
+  import communication from '@/data/communication.json'
+  import metrics from '@data/metrics.json'
+  // import trends from '@/data/trends.json'
   
   export function getContextFromMetadata(metadata) {
     const modelName = typeof metadata?.recommended_model === 'string' ? metadata.recommended_model.toLowerCase() : null
@@ -54,7 +56,7 @@ export function buildMetadataPrompt(changeText) {
   
   
   // Step 3: Build final prompt with injected context
-  export function buildFinalPrompt({ changeText, model, trend, caseStudies }) {
+  export function buildFinalPrompt({ changeText, model, trend, caseStudies, communication, metrics }) {
     const modelBlock = model ? `### Framework – ${model.name}
 ${model.description}
 
