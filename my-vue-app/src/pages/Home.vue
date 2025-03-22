@@ -138,15 +138,17 @@ export default {
       const { data, error } = await supabase
         .from('ongoingProjects')
         .select(`
-    projectDetails (timeline)
+    projectDetails (projectName,timeline)
   `)
         .eq('userID', user.id); // Use the appropriate column that links to the user
 
       if (error) console.error('Error fetching data:', error);
       else { console.log(data); 
       for(let i of data){
-        let response =i.projectDetails
-        this.roadmapData.push(response.timeline)
+        let response =i.projectDetails.timeline
+        response.title = i.projectDetails.projectName
+        this.roadmapData.push(response)
+        console.log(response)
       }
       }
 
