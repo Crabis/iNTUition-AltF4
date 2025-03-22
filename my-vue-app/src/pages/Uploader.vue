@@ -30,6 +30,7 @@
   import { ref } from 'vue'
   import * as mammoth from 'mammoth'
   import * as pdfjsLib from 'pdfjs-dist'
+  import { getChangePlanRecommendations } from '@/utils/apiService'
   
   const fileText = ref('')
   const apiResponse = ref('')
@@ -75,23 +76,17 @@
   }
   
   async function sendToAPI() {
-    loading.value = true
-    try {
-      // 🔁 Replace with your actual API endpoint
-      const response = await fetch('https://api.example.com/analyze-change', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: fileText.value })
-      })
-      const data = await response.json()
-      apiResponse.value = data.recommendations || 'No recommendations found.'
-    } catch (err) {
-      apiResponse.value = '❌ Error communicating with API.'
-      console.error(err)
-    } finally {
-      loading.value = false
-    }
+  loading.value = true
+  try {
+    const result = await getChangePlanRecommendations(fileText.value)
+    apiResponse.value = result
+  } catch (err) {
+    console.error(err)
+    apiResponse.value = '❌ Failed to generate AI recommendations.'
+  } finally {
+    loading.value = false
   }
+}
   </script>
   
   <style scoped>
