@@ -10,7 +10,7 @@
         <input
           type="text"
           v-model="searchQuery"
-          placeholder="Type to search..."
+          placeholder="Type your question..."
           class="search-input"
         />
       </div>
@@ -42,11 +42,10 @@
       <p>No matching FAQs found.</p>
     </div>
 
-    
-    <!-- New "Unanswered Questions?" Button -->
+    <!-- "Unanswered?" Section -->
     <div class="unanswered-container">
       <button class="btn unanswered-btn" @click="askAiChatbot">
-        Unanswered questions? Ask a chatbot!
+        Still have questions? Ask Jim!
       </button>
     </div>
 
@@ -56,7 +55,7 @@
       <div class="modal-content">
         <button class="close-btn" @click="closeChatModal">&times;</button>
         <div class="ai-chatbot">
-          <h2>AI Chatbot</h2>
+          <h2>Ask Jim</h2>
           <!-- Chat Messages -->
           <div class="chat-messages">
             <div
@@ -65,12 +64,12 @@
               :class="['chat-message', msg.role]"
             >
               <div class="message-content">
-                <strong>{{ msg.role === 'user' ? 'You' : 'AI' }}:</strong>
-                <!-- For assistant messages, format using v-html to preserve paragraphs/newlines -->
+                <strong>{{ msg.role === 'user' ? 'You' : 'Jim' }}:</strong>
+                <!-- For Jim's messages, format using v-html to preserve markdown formatting -->
                 <span v-if="msg.role === 'assistant'" v-html="formatMessage(msg.content)"></span>
                 <span v-else>{{ msg.content }}</span>
               </div>
-              <!-- Show actions for assistant messages -->
+              <!-- Show actions for Jim's messages -->
               <div v-if="msg.role === 'assistant'" class="message-actions">
                 <button
                   class="btn action-btn"
@@ -103,7 +102,7 @@
               type="text"
               v-model="userMessage"
               @keyup.enter="sendMessage"
-              placeholder="Type your question..."
+              placeholder="Type your question for Jim..."
               class="chat-input"
             />
             <button class="btn send-btn" @click="sendMessage">
@@ -202,6 +201,13 @@ export default {
     },
     askAiChatbot() {
       this.showChatModal = true;
+      // If the conversation is empty, let Jim send the first message.
+      if (this.conversation.length === 0) {
+        this.conversation.push({
+          role: 'assistant',
+          content: "Hi, I'm Jim, your change management expert. How can I assist you today?"
+        });
+      }
     },
     closeChatModal() {
       this.showChatModal = false;
@@ -224,7 +230,7 @@ export default {
             messages: [
               {
                 role: 'system',
-                content: 'You are a helpful assistant that provides information about change management. Format your responses using markdown for better readability.'
+                content: 'You are Jim, a helpful change management expert. Provide clear, concise, and professional answers formatted in markdown.'
               },
               ...this.conversation
             ]
@@ -258,7 +264,7 @@ export default {
             messages: [
               {
                 role: 'system',
-                content: 'You are a helpful assistant that provides information about change management. Format your responses using markdown for better readability.'
+                content: 'You are Jim, a helpful change management expert. Provide clear, concise, and professional answers formatted in markdown.'
               },
               ...this.conversation
             ]
@@ -306,51 +312,13 @@ export default {
   color: #333;
 }
 
-.unanswered-container {
-  text-align: center;
-  margin-top: 2rem;
-}
-
-.unanswered-btn {
-  font-weight: 600;
-  border: none;
-  border-radius: 8px;
-  padding: 0.75rem 1.5rem;
-  color: #fff;
-  background-color: #6c757d;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-.unanswered-btn:hover {
-  background-color: #5a6268;
-}
-
-.unanswered-container {
-  text-align: center;
-  margin-top: 2rem;
-}
-
-.unanswered-btn {
-  font-weight: 600;
-  border: none;
-  border-radius: 8px;
-  padding: 0.75rem 1.5rem;
-  color: #fff;
-  background-color: #6c757d;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-.unanswered-btn:hover {
-  background-color: #5a6268;
-}
-
-
 /* Page Title */
 .page-title {
-  font-size: 2rem;
+  font-size: 2.5rem;
   margin-bottom: 1.5rem;
   text-align: center;
   color: #2c3e50;
+  font-weight: 700;
 }
 
 /* Search Section */
@@ -360,13 +328,11 @@ export default {
   align-items: center;
   margin-bottom: 2rem;
 }
-
 .search-input-container {
   position: relative;
   width: 100%;
   max-width: 400px;
 }
-
 .search-icon {
   position: absolute;
   left: 10px;
@@ -375,7 +341,6 @@ export default {
   font-size: 1.2rem;
   color: #95a5a6;
 }
-
 .search-input {
   width: 100%;
   padding: 0.75rem 0.75rem 0.75rem 2.5rem;
@@ -385,11 +350,9 @@ export default {
   outline: none;
   transition: border 0.2s ease;
 }
-
 .search-input:focus {
   border-color: #007bff;
 }
-
 .search-btn {
   margin-top: 1rem;
   padding: 0.75rem 1.5rem;
@@ -402,7 +365,6 @@ export default {
   cursor: pointer;
   transition: background 0.2s ease;
 }
-
 .search-btn:hover {
   background-color: #0056b3;
 }
@@ -411,7 +373,6 @@ export default {
 .faq-list {
   margin-top: 1.5rem;
 }
-
 /* FAQ Card */
 .faq-card {
   background: #f7f9fb;
@@ -421,29 +382,24 @@ export default {
   cursor: pointer;
   transition: background 0.3s ease, transform 0.3s ease;
 }
-
 .faq-card:hover {
   background: #eef2f6;
   transform: translateY(-2px);
 }
-
 .faq-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-
 .faq-question {
   font-size: 1.1rem;
   margin: 0;
   font-weight: 500;
 }
-
 .toggle-icon {
   font-size: 1.4rem;
   color: #007bff;
 }
-
 /* FAQ Answer */
 .faq-answer {
   margin-top: 0.75rem;
@@ -451,7 +407,6 @@ export default {
   line-height: 1.6;
   color: #555;
 }
-
 /* No Results */
 .no-results {
   text-align: center;
@@ -460,20 +415,22 @@ export default {
   color: #777;
 }
 
-.ask-ai-btn {
-  margin-top: 1rem;
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
+/* Unanswered Button */
+.unanswered-container {
+  text-align: center;
+  margin-top: 2rem;
+}
+.unanswered-btn {
   font-weight: 600;
   border: none;
   border-radius: 8px;
-  background-color: #6c757d;
+  padding: 0.75rem 1.5rem;
   color: #fff;
+  background-color: #6c757d;
   cursor: pointer;
   transition: background 0.2s ease;
 }
-
-.ask-ai-btn:hover {
+.unanswered-btn:hover {
   background-color: #5a6268;
 }
 
@@ -517,7 +474,6 @@ export default {
   height: 100%;
   z-index: 1000;
 }
-
 .modal-overlay {
   position: absolute;
   top: 0;
@@ -526,7 +482,6 @@ export default {
   height: 100%;
   background: rgba(0, 0, 0, 0.4);
 }
-
 .modal-content {
   position: relative;
   background: #fff;
@@ -536,7 +491,6 @@ export default {
   border-radius: 12px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
 }
-
 .close-btn {
   position: absolute;
   top: 1rem;
@@ -548,25 +502,22 @@ export default {
   cursor: pointer;
   transition: color 0.2s ease;
 }
-
 .close-btn:hover {
   color: #333;
 }
 
-/* AI Chatbot */
+/* AI Chatbot Styles */
 .ai-chatbot {
   margin-top: 1rem;
   text-align: center;
 }
-
 .ai-chatbot h2 {
   margin-bottom: 1rem;
   color: #007bff;
 }
-
 .chat-messages {
-  max-height: 500px;   /* Increased chatbox size */
-  min-height: 300px;    /* Ensure a minimum height */
+  max-height: 500px;
+  min-height: 300px;
   overflow-y: auto;
   background: #f1f4f8;
   border-radius: 8px;
@@ -574,21 +525,16 @@ export default {
   margin-bottom: 1rem;
   text-align: left;
 }
-
 .chat-message {
   margin-bottom: 0.75rem;
   line-height: 1.5;
 }
-
 .message-content {
   display: inline-block;
 }
-
 .message-actions {
   margin-top: 0.5rem;
 }
-
-/* Style action buttons */
 .message-actions .action-btn {
   margin-right: 0.5rem;
   padding: 0.4rem 0.8rem;
@@ -600,29 +546,21 @@ export default {
   color: #333;
   transition: background 0.2s ease;
 }
-
-/* When liked, turn green */
 .message-actions .action-btn.liked {
   background-color: #28a745;
   color: #fff;
 }
-
-/* When disliked, turn red */
 .message-actions .action-btn.disliked {
   background-color: #dc3545;
   color: #fff;
 }
-
 .message-actions .action-btn:hover {
   background-color: #d4d4d4;
 }
-
-/* Chat Input Section */
 .chat-input-section {
   display: flex;
   gap: 0.5rem;
 }
-
 .chat-input {
   flex: 1;
   padding: 0.75rem;
@@ -632,11 +570,9 @@ export default {
   outline: none;
   transition: border 0.2s ease;
 }
-
 .chat-input:focus {
   border-color: #007bff;
 }
-
 .send-btn {
   padding: 0.75rem 1.5rem;
   font-size: 1rem;
@@ -648,7 +584,6 @@ export default {
   cursor: pointer;
   transition: background 0.2s ease;
 }
-
 .send-btn:hover {
   background-color: #0056b3;
 }
