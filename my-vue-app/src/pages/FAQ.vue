@@ -117,6 +117,8 @@
 </template>
 
 <script>
+import { marked } from 'marked';
+
 export default {
   data() {
     return {
@@ -143,7 +145,7 @@ export default {
         {
           question: "How do we apply lessons learned to future campaigns?",
           answer:
-            "Each completed campaign’s debrief includes best practices and pitfalls. These insights are compiled in the archive and regularly reviewed during planning sessions for new initiatives."
+            "Each completed campaign's debrief includes best practices and pitfalls. These insights are compiled in the archive and regularly reviewed during planning sessions for new initiatives."
         },
         {
           question: "Who is responsible for overseeing change management efforts?",
@@ -158,7 +160,7 @@ export default {
         {
           question: "Where can I get personalized support during a change?",
           answer:
-            "Reach out to your department’s Change Champion or the CMO for guidance on training, communication, and stakeholder engagement resources."
+            "Reach out to your department's Change Champion or the CMO for guidance on training, communication, and stakeholder engagement resources."
         }
       ],
 
@@ -219,8 +221,13 @@ export default {
           },
           body: JSON.stringify({
             model: "google/gemini-2.0-flash-thinking-exp:free",
-            messages: this.conversation,
-            max_tokens: 200
+            messages: [
+              {
+                role: 'system',
+                content: 'You are a helpful assistant that provides information about change management. Format your responses using markdown for better readability.'
+              },
+              ...this.conversation
+            ]
           })
         });
         const data = await response.json();
@@ -248,8 +255,13 @@ export default {
           },
           body: JSON.stringify({
             model: "google/gemini-2.0-flash-thinking-exp:free",
-            messages: this.conversation,
-            max_tokens: 200
+            messages: [
+              {
+                role: 'system',
+                content: 'You are a helpful assistant that provides information about change management. Format your responses using markdown for better readability.'
+              },
+              ...this.conversation
+            ]
           })
         });
         const data = await response.json();
@@ -274,8 +286,8 @@ export default {
         this.conversation[index].feedback === "dislike" ? null : "dislike";
     },
     formatMessage(message) {
-      // Replace newline characters with <br/> for proper paragraph formatting
-      return message.replace(/\n/g, "<br/>");
+      // Use marked to convert markdown to HTML
+      return marked(message);
     }
   }
 };
