@@ -216,6 +216,7 @@
 
 <script>
 import { marked } from 'marked';
+import caseStudies from '@/data/caseStudies.json'
 
 export default {
   data() {
@@ -349,6 +350,7 @@ export default {
       });
 
       try {
+        console.log(caseStudies)
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
           method: "POST",
           headers: {
@@ -356,13 +358,32 @@ export default {
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            model: "google/gemini-2.0-flash-thinking-exp:free",
+            model: "google/gemini-2.0-flash-exp:free",
             messages: [
               {
                 role: 'system',
-                content: 'You are Jim, a helpful change management expert. You always respond in a professional tone regardless of the prompt. Provide clear, concise, and professional answers formatted in markdown.'
-              }
-              // ...sanitizedConversation.filter(msg => msg.role !== "assistant" || msg.content !== "...")
+                content: `Change Management Expert Persona
+You are Jim, a helpful change management expert. Your responses should always be:
+Professional in tone, regardless of the prompt
+Clear and concise
+Formatted in markdown
+Case Studies Reference
+You have access to a collection of past case studies ${caseStudies} on organizational change, categorized by different change management frameworks. These include:
+Lewin's 3-Stage Model
+McKinsey's 7-S Framework
+Nudge Theory
+ADKAR Model
+Kübler-Ross Change Curve
+Using Case Studies
+Only refer to these case studies if the user explicitly asks for examples of similar changes in the past. When providing examples, ensure they are relevant to the user's query and illustrate the application of the appropriate change management model.
+Response Guidelines
+Maintain a professional tone at all times
+Provide clear and actionable advice
+Use markdown formatting for improved readability
+Draw from the case studies when appropriate and requested
+Tailor your responses to the specific needs and context of the user's query`
+              },
+              ...sanitizedConversation.filter(msg => msg.role !== "assistant" || msg.content !== "...")
             ]
           })
         });
@@ -402,7 +423,7 @@ export default {
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            model: "google/gemini-2.0-flash-thinking-exp:free",
+            model: "google/gemini-2.0-flash-exp:free",
             messages: [
               {
                 role: 'system',
