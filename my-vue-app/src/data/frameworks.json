@@ -12,12 +12,24 @@
     },
     {
       "name": "Lewin's Change Model",
-      "description": "A three-step change management model...",
+      "description": "Lewin’s change model states that restraining forces influence the behavior of organizations and individuals, ultimately deciding the fate of change. The driving forces motivate and steer employees toward the new state. The restraining forces highlight potential resistance to change, acting as the prime barriers to change initiatives. ",
       "stages": [
-        { "stage": "Unfreeze", "details": "Prepare the organization for change." },
-        { "stage": "Change", "details": "Implement new processes or systems." },
-        { "stage": "Refreeze", "details": "Stabilize after change is implemented." }
-      ]
+        { "stage": "Unfreeze", 
+          "brief": "Preparing for a desired Change",
+          "details": "The first stage in Lewin’s model deals with perception management and aims to prepare the affected stakeholders for the upcoming organizational change. Change leaders must look at ways to improve the company’s preparedness for change and create a sense of urgency similar to Kotter’s change model. During this stage, effective change communication is vital in getting the desired team members buy-in and support of the people in the change management. The following activities under the ‘unfreeze’ stage will help you embrace change better: 1. Conduct a business process analysis to understand the current loopholes in the business processes 2. Obtain organizational buy-in 3. Create a strategic change vision and change strategy 4. Communicate in a compelling way about why change has to occur 5. Address employee concerns with honesty and transparency" },
+        { "stage": "Change",
+          "brief": "Implementing for a desired Change",
+          "details": "Once the status quo is disrupted, this stage deals with implementing change. To smoothen the transition, you must consider an agile and iterative approach that incorporates employee feedback. You can further look at the following actionable items to keep uncertainty at bay: - Ensure a continuous flow of information to obtain the support of your team members. - Organize change management workshops and sessions for change management exercises. - Empower employees to deal with the change proactively. - Generate easy wins as visible results will motivate your team" },
+        { "stage": "Refreeze", 
+          "brief": "Implementing for a desired Change",
+          "details": "Employees move from the transition phase towards stabilization or acceptance in the final’ refreezing’ stage. However, if change leaders fail to reinforce the change in organizational culture, employees might revert to previous behaviors. The following activities will help you support the change.. - Identify and reward early adopters and change champions. - Collect employee feedback regularly. - Offer on-demand employee training and support" }
+      ], 
+      "Implmentation": [
+        { "" : "", "" : "", "" : ""
+
+        }
+      ], 
+      "Challenges" : ""
     }
   ]
   
