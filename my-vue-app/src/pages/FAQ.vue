@@ -1,11 +1,10 @@
 <template>
-  <div class="faq-container text-center">
+  <div class="faq-container">
     <!-- Page Title -->
     <h1 class="page-title">Change Management FAQ</h1>
 
     <!-- Search Section -->
     <div class="search-section">
-      <!-- Search Input with Icon -->
       <div class="search-input-container">
         <span class="search-icon">&#128269;</span>
         <input
@@ -15,16 +14,14 @@
           class="search-input"
         />
       </div>
-      <!-- Search Button -->
       <button class="btn search-btn" @click="performSearch">
         {{ message }}
       </button>
     </div>
 
     <!-- FAQ List -->
-    <transition-group name="faq-list" tag="div" class="faq-list mt-4" v-if="filteredFaqs.length">
+    <transition-group name="faq-list" tag="div" class="faq-list" v-if="filteredFaqs.length">
       <div v-for="(faq, index) in filteredFaqs" :key="faq.question" class="faq-card">
-        <!-- Accordion Header -->
         <div class="faq-header" @click="toggleFaq(index)">
           <h5 class="faq-question">{{ faq.question }}</h5>
           <span class="toggle-icon">
@@ -32,7 +29,6 @@
             <span v-else>&#9658;</span>
           </span>
         </div>
-        <!-- Accordion Content -->
         <transition name="accordion">
           <div v-if="activeFaqIndex === index" class="faq-answer">
             <p>{{ faq.answer }}</p>
@@ -54,11 +50,8 @@
       <div class="modal-overlay" @click="closeChatModal"></div>
       <div class="modal-content">
         <button class="close-btn" @click="closeChatModal">&times;</button>
-
-        <!-- AI Chatbot Interface -->
         <div class="ai-chatbot">
           <h2>AI Chatbot</h2>
-          <!-- Chat Messages -->
           <div class="chat-messages">
             <div
               v-for="(msg, idx) in conversation"
@@ -69,7 +62,6 @@
               <span>{{ msg.content }}</span>
             </div>
           </div>
-          <!-- Chat Input & Send Button -->
           <div class="chat-input-section">
             <input
               type="text"
@@ -136,8 +128,8 @@ export default {
 
       // Modal and Chat state
       showChatModal: false,
-      conversation: [], // Array for chat messages
-      userMessage: ""   // Current chat input
+      conversation: [],
+      userMessage: ""
     };
   },
   computed: {
@@ -152,36 +144,25 @@ export default {
     }
   },
   methods: {
-    // Simulated search action
     performSearch() {
       this.message = "Please wait";
       setTimeout(() => {
         this.message = "Search";
       }, 1000);
     },
-
-    // Toggle FAQ accordion
     toggleFaq(index) {
       this.activeFaqIndex = this.activeFaqIndex === index ? null : index;
     },
-
-    // Open chatbot modal
     askAiChatbot() {
       this.showChatModal = true;
-      // Optionally clear conversation: this.conversation = [];
     },
-
-    // Close chatbot modal
     closeChatModal() {
       this.showChatModal = false;
     },
-
-    // Send user's message to OpenRouter.ai and append AI response to conversation
     async sendMessage() {
       const userInput = this.userMessage.trim();
       if (!userInput) return;
 
-      // Add user's message to conversation
       this.conversation.push({ role: "user", content: userInput });
       this.userMessage = "";
 
@@ -189,9 +170,8 @@ export default {
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
           method: "POST",
           headers: {
-            "Authorization": `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY}`,
+            "Authorization": `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY_FAQ}`,
             "Content-Type": "application/json"
-            // Remove HTTP-Referer header if not required on your plan
           },
           body: JSON.stringify({
             model: "openai/gpt-3.5-turbo",
@@ -201,9 +181,7 @@ export default {
         });
 
         const data = await response.json();
-        const aiReply =
-          data?.choices?.[0]?.message?.content || "No response received.";
-
+        const aiReply = data?.choices?.[0]?.message?.content || "No response received.";
         this.conversation.push({ role: "assistant", content: aiReply });
       } catch (error) {
         console.error("Error calling OpenRouter.ai:", error);
@@ -218,18 +196,24 @@ export default {
 </script>
 
 <style scoped>
-/* Container Styles */
+/* Overall Container */
 .faq-container {
-  max-width: 700px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
-  font-family: "Helvetica Neue", sans-serif;
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  color: #333;
 }
 
 /* Page Title */
 .page-title {
-  font-weight: bold;
-  margin-bottom: 1rem;
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  color: #2c3e50;
 }
 
 /* Search Section */
@@ -237,110 +221,126 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 2rem;
 }
 
-/* Search Input Container */
 .search-input-container {
   position: relative;
-  display: inline-block;
+  width: 100%;
+  max-width: 400px;
 }
 
-/* Search Icon */
 .search-icon {
   position: absolute;
-  left: 8px;
-  top: 9px;
-  font-size: 16px;
-  color: #555;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.2rem;
+  color: #95a5a6;
 }
 
-/* Search Input */
 .search-input {
-  padding: 8px 8px 8px 30px;
-  min-width: 250px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  width: 100%;
+  padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+  border: 1px solid #dcdcdc;
+  border-radius: 8px;
+  font-size: 1rem;
   outline: none;
+  transition: border 0.2s ease;
 }
 
-/* Search Button */
-.search-btn {
-  margin-top: 10px;
-  font-weight: 500;
-  border: none;
-  color: #fff;
-  background-color: #007bff;
-  padding: 8px 16px;
-  border-radius: 4px;
-  transition: background 0.2s ease-in-out;
+.search-input:focus {
+  border-color: #007bff;
 }
+
+.search-btn {
+  margin-top: 1rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  background-color: #007bff;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
 .search-btn:hover {
   background-color: #0056b3;
 }
 
-/* FAQ List Styles */
+/* FAQ List */
 .faq-list {
-  margin-top: 2rem;
+  margin-top: 1.5rem;
 }
 
 /* FAQ Card */
 .faq-card {
-  background: #f8f9fa;
-  border-radius: 5px;
-  padding: 1rem;
+  background: #f7f9fb;
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
   margin-bottom: 1rem;
   cursor: pointer;
-  transition: background 0.2s ease-in-out;
-}
-.faq-card:hover {
-  background: #e2e6ea;
+  transition: background 0.3s ease, transform 0.3s ease;
 }
 
-/* FAQ Header */
+.faq-card:hover {
+  background: #eef2f6;
+  transform: translateY(-2px);
+}
+
 .faq-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
+
 .faq-question {
   font-size: 1.1rem;
   margin: 0;
-  text-align: left;
+  font-weight: 500;
 }
+
 .toggle-icon {
   font-size: 1.4rem;
-  padding-right: 5px;
+  color: #007bff;
 }
 
 /* FAQ Answer */
 .faq-answer {
-  margin-top: 0.5rem;
-  text-align: left;
+  margin-top: 0.75rem;
   font-size: 0.95rem;
-  line-height: 1.4;
+  line-height: 1.6;
+  color: #555;
 }
 
-/* No Results Section */
+/* No Results */
 .no-results {
+  text-align: center;
   margin-top: 2rem;
+  font-size: 1.1rem;
+  color: #777;
 }
 
-/* Ask AI Button */
 .ask-ai-btn {
-  font-weight: 500;
+  margin-top: 1rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
   border: none;
-  color: #fff;
+  border-radius: 8px;
   background-color: #6c757d;
-  padding: 8px 16px;
-  border-radius: 4px;
-  transition: background 0.2s ease-in-out;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s ease;
 }
+
 .ask-ai-btn:hover {
   background-color: #5a6268;
 }
 
-/* Transitions & Animations */
+/* Transitions */
 .faq-list-enter-active,
 .faq-list-leave-active {
   transition: all 0.3s ease;
@@ -359,11 +359,11 @@ export default {
   opacity: 0;
 }
 .accordion-enter-to {
-  max-height: 500px;
+  max-height: 400px;
   opacity: 1;
 }
 .accordion-leave {
-  max-height: 500px;
+  max-height: 400px;
   opacity: 1;
 }
 .accordion-leave-to {
@@ -371,7 +371,7 @@ export default {
   opacity: 0;
 }
 
-/* Chatbot Modal Styles */
+/* Chatbot Modal */
 .chat-modal {
   position: fixed;
   top: 0;
@@ -380,77 +380,107 @@ export default {
   height: 100%;
   z-index: 1000;
 }
+
 .modal-overlay {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.4);
 }
+
 .modal-content {
   position: relative;
   background: #fff;
   margin: 5% auto;
-  padding: 20px;
+  padding: 2rem;
   max-width: 600px;
-  border-radius: 8px;
-  z-index: 1001;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
 }
+
 .close-btn {
   position: absolute;
-  right: 10px;
-  top: 10px;
+  top: 1rem;
+  right: 1rem;
   background: transparent;
   border: none;
-  font-size: 1.5rem;
+  font-size: 1.75rem;
+  color: #aaa;
   cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.close-btn:hover {
+  color: #333;
 }
 
 /* AI Chatbot Styles */
 .ai-chatbot {
   margin-top: 1rem;
+  text-align: center;
 }
+
+.ai-chatbot h2 {
+  margin-bottom: 1rem;
+  color: #007bff;
+}
+
 .chat-messages {
-  max-height: 300px;
+  max-height: 250px;
   overflow-y: auto;
-  background: #f9f9f9;
-  border-radius: 5px;
+  background: #f1f4f8;
+  border-radius: 8px;
   padding: 1rem;
   margin-bottom: 1rem;
   text-align: left;
 }
+
 .chat-message {
-  margin-bottom: 0.5rem;
-  line-height: 1.4;
+  margin-bottom: 0.75rem;
+  line-height: 1.5;
 }
+
 .chat-message.user {
   text-align: right;
 }
+
 .chat-message.assistant {
   text-align: left;
 }
 
-/* Chat Input Section */
 .chat-input-section {
   display: flex;
-  gap: 8px;
+  gap: 0.5rem;
 }
+
 .chat-input {
   flex: 1;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
   outline: none;
+  transition: border 0.2s ease;
 }
+
+.chat-input:focus {
+  border-color: #007bff;
+}
+
 .send-btn {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
   border: none;
+  border-radius: 8px;
   background-color: #007bff;
   color: #fff;
-  padding: 8px 16px;
-  border-radius: 4px;
-  transition: background 0.2s ease-in-out;
+  cursor: pointer;
+  transition: background 0.2s ease;
 }
+
 .send-btn:hover {
   background-color: #0056b3;
 }
