@@ -7,12 +7,14 @@ export function buildMetadataPrompt(changeText) {
   - The primary industry or domain
   - The change management model that best applies
   - Any common case studies or industry trends that might be relevant
-  
+
+  There are the following options for framework: "Lewin's Model" , "McKinsey's 7-S Framework" , "Nudge Theory" , "ADKAR Model" , "Kübler-Ross Change Curve"
+  Set the default framework to "ADKAR Model" if no framework is identified
+
+
   Respond ONLY with a JSON object in this format:
   {
-    "industry": "...",
-    "recommended_model": "...",
-    "relevant_case_studies": ["...", "..."]
+    "framework": "...",
   }
   
   Plan:
@@ -30,47 +32,65 @@ export function buildMetadataPrompt(changeText) {
   // import trends from '@/data/trends.json'
   
   export function getContextFromMetadata(metadata) {
-    const modelName = typeof metadata?.recommended_model === 'string' ? metadata.recommended_model.toLowerCase() : null
-    const industry = typeof metadata?.industry === 'string' ? metadata.industry.toLowerCase() : null
-    const studyTitles = Array.isArray(metadata?.relevant_case_studies) ? metadata.relevant_case_studies : []
-  
-    const model = modelName
-      ? frameworks.find(f => typeof f.name === 'string' && f.name.toLowerCase() === modelName)
+    const modelName = typeof metadata?.framework === 'string'
+      ? metadata.framework.toLowerCase()
       : null
   
-    const caseStudyBlocks = studyTitles
-      .map(title => {
-        if (typeof title === 'string') {
-          return caseStudies.find(cs => typeof cs.title === 'string' && cs.title.toLowerCase() === title.toLowerCase())
-        }
-        return null
-      })
-      .filter(Boolean)
+    if (!modelName) return { model: null }
   
-    const trendBlock = industry
-      ? trends.find(t => typeof t.industry === 'string' && t.industry.toLowerCase() === industry)
-      : null
+    const models = frameworks.change_management_models
   
-    return { model, caseStudies: caseStudyBlocks || [], trend: trendBlock || null }
+    // 🔍 Find matching key (case-insensitive)
+    const matchedKey = Object.keys(models).find(
+      key => key.toLowerCase() === modelName
+    )
+  
+    if (!matchedKey) return { model: null }
+  
+    const matchedModel = models[matchedKey]
+  
+    // ✅ Return with name and description promoted
+    const model = {
+      name: matchedKey,
+      description: matchedModel.description || '',
+      ...Object.fromEntries(
+        Object.entries(matchedModel).filter(([k]) => k !== 'description')
+      )
+    }
+    console.log(model)
+    return { model }
   }
   
   
-  // Step 3: Build final prompt with injected context
-  export function buildFinalPrompt({ changeText, model, trend, caseStudies, communication, metrics }) {
-    const modelBlock = model ? `### Framework – ${model.name}
-${model.description}
-
-**Stages:**
-${model.stages.map(s => `- **${s.stage}**${s.brief ? ` (${s.brief})` : ''}: ${s.details}`).join('\n\n')}
-
-${model.Implementation ? `**Implementation:**
-${Array.isArray(model.Implementation) ? model.Implementation.map(imp => Object.entries(imp).filter(([k, v]) => k && v).map(([k, v]) => `- **${k}**: ${v}`).join('\n')).join('\n') : model.Implementation}` : ''}
-
-${model.Challenges ? `**Challenges:**
-${model.Challenges}` : ''}` : ''
-
-    const trendBlock = trend ? `### Industry Trends – ${trend.industry}\n${trend.details}` : ''
-    const casesBlock = caseStudies.length > 0 ? `### Case Studies\n${caseStudies.map(c => `- ${c.title}: ${c.summary}`).join('\n')}` : ''
+  export function buildFinalPrompt({ changeText, model}) {
+    // 🔁 Recursively format nested objects/arrays
+    const formatObject = (obj, depth = 0) => {
+      const indent = '  '.repeat(depth)
+      if (Array.isArray(obj)) {
+        return obj.map(item => {
+          if (typeof item === 'string') return `${indent}- ${item}`
+          if (typeof item === 'object') return formatObject(item, depth + 1)
+          return `${indent}- ${item}`
+        }).join('\n')
+      } else if (typeof obj === 'object') {
+        return Object.entries(obj).map(([key, value]) => {
+          const label = `${indent}- **${key}**:`
+          if (typeof value === 'string') return `${label} ${value}`
+          return `${label}\n${formatObject(value, depth + 1)}`
+        }).join('\n')
+      } else {
+        return `${indent}${obj}`
+      }
+    }
+  
+    const modelBlock = model
+      ? `### Framework – ${model.name}
+  ${model.description ? model.description + '\n' : ''}
+  
+  **Model Details:**
+  ${formatObject(Object.fromEntries(Object.entries(model).filter(([k]) => k !== 'name' && k !== 'description')))}
+  `
+      : ''
   
     return `
   You are an expert AI assistant specialized in organizational change.
@@ -81,9 +101,11 @@ ${model.Challenges}` : ''}` : ''
   ---
   
   Use the following contextual information:
-  ${modelBlock}\n\n${trendBlock}\n\n${casesBlock}
+  ${modelBlock}
   
   Generate a step-by-step implementation strategy and a suggested timeline.
+  DO NOT FORMAT THE DATA IN A TABLE.
   `.trim()
   }
+  
   
