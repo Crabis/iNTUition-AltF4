@@ -4,6 +4,13 @@
   
       <input type="file" @change="handleFileUpload" accept=".txt,.pdf,.docx" class="mb-4" />
   
+      <textarea
+        v-model="userPrompt"
+        placeholder="Describe how you'd like your change model to be handled (e.g., focus on agility, minimize disruption, etc.)"
+        rows="4"
+        class="w-full p-2 mb-4 border rounded"
+      ></textarea>
+  
       <div v-if="loading" class="text-blue-500">Processing file...</div>
   
       <div v-if="fileText" class="mb-4">
@@ -12,7 +19,7 @@
       </div>
   
       <button
-        :disabled="!fileText || loading"
+        :disabled="!fileText || !userPrompt || loading"
         @click="sendToAPI"
         class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
       >
@@ -33,6 +40,7 @@
   import { getChangePlanRecommendations } from '@/utils/apiService'
   
   const fileText = ref('')
+  const userPrompt = ref('')
   const apiResponse = ref('')
   const loading = ref(false)
   
@@ -76,17 +84,17 @@
   }
   
   async function sendToAPI() {
-  loading.value = true
-  try {
-    const result = await getChangePlanRecommendations(fileText.value)
-    apiResponse.value = result
-  } catch (err) {
-    console.error(err)
-    apiResponse.value = '❌ Failed to generate AI recommendations.'
-  } finally {
-    loading.value = false
+    loading.value = true
+    try {
+      const result = await getChangePlanRecommendations(userPrompt.value, fileText.value)
+      apiResponse.value = result
+    } catch (err) {
+      console.error(err)
+      apiResponse.value = '❌ Failed to generate AI recommendations.'
+    } finally {
+      loading.value = false
+    }
   }
-}
   </script>
   
   <style scoped>
@@ -94,4 +102,5 @@
     display: block;
   }
   </style>
+  
   

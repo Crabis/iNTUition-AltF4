@@ -1,1 +1,23 @@
-{"Hi":"No"}
+[
+    {
+      "name": "ADKAR",
+      "description": "A goal-oriented change management model...",
+      "stages": [
+        { "stage": "Awareness", "details": "Explain why change is necessary." },
+        { "stage": "Desire", "details": "Foster a desire to support the change." },
+        { "stage": "Knowledge", "details": "Provide training and information." },
+        { "stage": "Ability", "details": "Ensure people can implement new skills." },
+        { "stage": "Reinforcement", "details": "Reinforce and reward sustained change." }
+      ]
+    },
+    {
+      "name": "Lewin's Change Model",
+      "description": "A three-step change management model...",
+      "stages": [
+        { "stage": "Unfreeze", "details": "Prepare the organization for change." },
+        { "stage": "Change", "details": "Implement new processes or systems." },
+        { "stage": "Refreeze", "details": "Stabilize after change is implemented." }
+      ]
+    }
+  ]
+  

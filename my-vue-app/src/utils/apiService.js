@@ -1,41 +1,49 @@
 import { buildMetadataPrompt, getContextFromMetadata, buildFinalPrompt } from '@/utils/dualPrompt'
 
-const API_URL = 'https://api.openrouter.ai/assist' // Replace with actual OpenRouter endpoint
-const API_KEY = 'your-api-key-here' // ⚠️ Replace securely in production
-
-async function callOpenRouter(prompt, model = 'openai/gpt-4') {
-  const response = await fetch(API_URL, {
-    method: 'POST',
+async function callOpenRouter(prompt) {
+  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${API_KEY}`
+      "Authorization": `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY_START}`,
+      "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      model,
-      messages: [{ role: 'user', content: prompt }]
+      "model": "google/gemini-2.0-flash-lite-preview-02-05:free",
+      "messages": [
+        {
+          "role": "user",
+          "content": prompt
+        }
+      ]
     })
-  })
+  });
 
   const data = await response.json()
   return data.choices?.[0]?.message?.content || ''
 }
 
-export async function getChangePlanRecommendations(changeText) {
+export async function getChangePlanRecommendations(userPrompt, fileText) {
   try {
-    // Step 1: Metadata extraction
-    const metadataPrompt = buildMetadataPrompt(changeText)
+    // Step 1: Metadata extraction from user prompt only
+    const metadataPrompt = buildMetadataPrompt(userPrompt)
     const metadataRaw = await callOpenRouter(metadataPrompt)
-    const metadata = JSON.parse(metadataRaw)
+
+    // Attempt to extract JSON from markdown/code-block formatted string
+    const jsonStart = metadataRaw.indexOf('{')
+    const jsonEnd = metadataRaw.lastIndexOf('}') + 1
+    const jsonStr = metadataRaw.slice(jsonStart, jsonEnd)
+    const metadata = JSON.parse(jsonStr)
 
     // Step 2: Context matching
     const context = getContextFromMetadata(metadata)
 
-    // Step 3: Build final prompt
+    // Step 3: Build final prompt using file content + context
     const finalPrompt = buildFinalPrompt({
-      changeText,
+      changeText: fileText,
       model: context.model,
       trend: context.trend,
-      caseStudies: context.caseStudies
+      caseStudies: context.caseStudies,
+      userIntent: userPrompt
     })
 
     // Step 4: Final call for recommendation
@@ -46,3 +54,5 @@ export async function getChangePlanRecommendations(changeText) {
     throw new Error('Failed to generate AI recommendation.')
   }
 }
+
+

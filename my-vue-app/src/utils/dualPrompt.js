@@ -28,14 +28,30 @@ export function buildMetadataPrompt(changeText) {
   import trends from '@/data/trends.json'
   
   export function getContextFromMetadata(metadata) {
-    const model = frameworks.find(f => f.name.toLowerCase() === metadata.recommended_model.toLowerCase())
-    const caseStudyBlocks = metadata.relevant_case_studies
-      .map(title => caseStudies.find(cs => cs.title.toLowerCase() === title.toLowerCase()))
-      .filter(Boolean)
-    const trendBlock = trends.find(t => t.industry.toLowerCase() === metadata.industry.toLowerCase())
+    const modelName = typeof metadata?.recommended_model === 'string' ? metadata.recommended_model.toLowerCase() : null
+    const industry = typeof metadata?.industry === 'string' ? metadata.industry.toLowerCase() : null
+    const studyTitles = Array.isArray(metadata?.relevant_case_studies) ? metadata.relevant_case_studies : []
   
-    return { model, caseStudies: caseStudyBlocks, trend: trendBlock }
+    const model = modelName
+      ? frameworks.find(f => typeof f.name === 'string' && f.name.toLowerCase() === modelName)
+      : null
+  
+    const caseStudyBlocks = studyTitles
+      .map(title => {
+        if (typeof title === 'string') {
+          return caseStudies.find(cs => typeof cs.title === 'string' && cs.title.toLowerCase() === title.toLowerCase())
+        }
+        return null
+      })
+      .filter(Boolean)
+  
+    const trendBlock = industry
+      ? trends.find(t => typeof t.industry === 'string' && t.industry.toLowerCase() === industry)
+      : null
+  
+    return { model, caseStudies: caseStudyBlocks || [], trend: trendBlock || null }
   }
+  
   
   // Step 3: Build final prompt with injected context
   export function buildFinalPrompt({ changeText, model, trend, caseStudies }) {
