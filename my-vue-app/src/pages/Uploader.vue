@@ -257,9 +257,12 @@
 <script setup>
 import { ref } from 'vue'
 import * as mammoth from 'mammoth'
-import * as pdfjsLib from 'pdfjs-dist'
 import { marked } from 'marked'
 import { getChangePlanRecommendations } from '@/utils/apiService'
+import * as pdfjsLib from 'pdfjs-dist'
+
+// Use import.meta.url to correctly reference the worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).href
 
 const fileText = ref('')
 const userPrompt = ref('')
@@ -271,7 +274,7 @@ const fileIcon = ref('bi-file-earmark')
 const generationTime = ref('3.2')
 const currentDate = ref(new Date().toLocaleDateString())
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`
+
 
 function downloadPdf() {
   // Create element <a> for downloading PDF
