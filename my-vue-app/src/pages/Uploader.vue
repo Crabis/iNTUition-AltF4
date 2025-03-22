@@ -286,20 +286,30 @@ const aiTimeline = ref('')
 
 
 function downloadPdf() {
-  // Create new PDF document
   const doc = new jsPDF();
+  const pageHeight = doc.internal.pageSize.height;
   
-  // Add content from the AI recommendations
+  doc.setFontSize(16);
   doc.text("AI Recommendations", 20, 20);
   
-  // If you have HTML content, you might need html2canvas
-  // This is a simplified example
-  const plainText = apiResponse.value.replace(/<[^>]*>/g, '');
-  doc.text(plainText, 20, 30);
+  const recommendations = apiResponse.value.replace(/<[^>]*>/g, '');
+  doc.setFontSize(12);
   
-  // Save the PDF
-  doc.save('recommendations.pdf');
+  let splitText = doc.splitTextToSize(recommendations, 170);
+  let yPosition = 30;
+  
+  for (let i = 0; i < splitText.length; i++) {
+    if (yPosition > pageHeight - 20) {
+      doc.addPage();
+      yPosition = 20;
+    }
+    doc.text(splitText[i], 20, yPosition);
+    yPosition += 7;
+  }
+  
+  doc.save('ai_recommendations.pdf');
 }
+
 
 
 
