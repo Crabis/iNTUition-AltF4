@@ -1,7 +1,6 @@
 <template>
     <div class="chatbot-container">
         <b-card no-body class="chat-card">
-            <!-- Header section remains the same -->
             <b-card-header class="chat-header">
                 <div class="header-content">
                     <div class="logo-container">
@@ -35,20 +34,6 @@
                     <img src="@/assets/welcome-illustration.jpg" alt="Welcome" class="welcome-image">
                     <h5>Welcome to your Change Management Assistant</h5>
                     <p>I'm here to help you navigate organizational change with confidence and resilience.</p>
-
-                    <!-- Add project selection dropdown -->
-                    <div class="project-selection">
-                        <label for="project-select">Please select a project to discuss:</label>
-                        <select id="project-select" v-model="final" class="form-control">
-                            <option value="" disabled>Select a project</option>
-                            <option v-for="(projectTitle, index) in title" :key="index" :value="projectTitle">
-                                {{ projectTitle }}
-                            </option>
-                        </select>
-                        <b-button variant="primary" class="mt-3" @click="confirmProjectSelection"
-                            :disabled="!final">Confirm Selection</b-button>
-                    </div>
-
                     <div class="quick-prompts">
                         <b-button variant="outline-primary" size="sm"
                             @click="useQuickPrompt('I\'m feeling anxious about the upcoming reorganization')">
@@ -87,7 +72,6 @@
                     </div>
                 </div>
             </b-card-body>
-
 
             <div class="resources-bar" v-if="showResources">
                 <div class="resources-header">
@@ -137,29 +121,29 @@
         </b-card>
     </div>
 </template>
+
 <script>
 import { marked } from 'marked';
 import guides from '@/data/communication.json';
 import { supabase } from '@/supabase';
+
 export default {
     name: 'Chatbot',
     data() {
         return {
-            title: [],
-            context: ``,
+            title:[],
+            context:``,
             userInput: '',
-            final: '', // Store the selected project
-            projectSelected: false, // Track if a project has been selected
             messages: [
                 {
                     role: 'assistant',
-                    content: 'Hello! I\'m your Change Management Assistant. Please select a project from the dropdown to begin our discussion about managing change.'
+                    content: 'Hello! I\'m your Change Management Assistant. I can help you manage emotions and stress during organizational transitions. How are you feeling about the changes in your organization?'
                 }
             ],
             isLoading: false,
             isDarkMode: false,
             showResources: false,
-            userAvatar: null,
+            userAvatar: null, // Can be set to user's profile picture if available
         };
     },
     mounted() {
@@ -179,7 +163,6 @@ export default {
         this.scrollToBottom();
     },
     methods: {
-        // Add this new method
         formatMessage(content) {
             // Convert markdown to HTML and enhance with custom formatting
             let formattedContent = marked(content);
@@ -192,35 +175,10 @@ export default {
 
             return formattedContent;
         },
-        confirmProjectSelection() {
-            if (this.final) {
-                this.projectSelected = true;
-                // Update the context based on the selected project if needed
-                
-                // Add a message confirming the selection
-                this.messages.push({
-                    role: 'assistant',
-                    content: `You've selected the project "${this.final}". How can I help you manage changes related to this project?`
-                });
-            }
-        },
-        
-        // Modify sendMessage to include the selected project in the context
         async sendMessage() {
             if (!this.userInput.trim() || this.isLoading) return;
-            
-            // Check if a project has been selected
-            if (!this.projectSelected) {
-                this.messages.push({
-                    role: 'assistant',
-                    content: 'Please select a project from the dropdown first before we continue.'
-                });
-                return;
-            }
 
-            // Rest of the sendMessage method remains the same
-            // But you can now include this.final in your API calls
-            // ...
+            // Add user message
             this.messages.push({
                 role: 'user',
                 content: this.userInput
@@ -229,25 +187,7 @@ export default {
             const userMessage = this.userInput;
             this.userInput = '';
             this.isLoading = true;
-            
-            // When preparing the system message, include the selected project
-            const systemMessage = {
-                role: 'system',
-                content: `You are a supportive change management assistant. Help users manage their employee's emotions during organizational change. 
-                          The following is the context for what is the change:
-                          --
-                          Selected Project: ${this.final}
-                          ${this.context}
-                          --
-                          Based on the context and the user's questions, generate 5 questions that will assist you in understanding the root cause of the issue
-                          Using the following guides:
-                          --
-                          ${guides}
-                          --
-                          provide some solutions to resolve the user's issues.`
-            };
-            
-            // Continue with the existing sendMessage implementation
+
             try {
                 // Prepare conversation history for the AI
                 const messageHistory = this.messages.map(msg => ({
@@ -269,7 +209,18 @@ export default {
                         "messages": [
                             {
                                 role: 'system',
-                                content: systemMessage
+                                content: `You are a supportive change management assistant. Help users manage their employee's emotions during organizational change. Provide empathetic, practical advice for coping with uncertainty, stress, and resistance to change. Format your responses using markdown for better readability. Use ### Tip: to highlight important tips. Keep responses concise but helpful. Include specific actionable strategies when possible.
+                                            The following is the context for what is the change:
+                                            --
+                                            ${this.context}
+                                            --
+                                            Based on the context and the user's questions, generate 5 questions that will assist you in understanding the root cause of the issue
+                                            Using the following guides:
+                                            --
+                                            ${guides}
+                                            --
+                                            provide some solutions to resolve the user's issues.
+                                            `
                                             
                             },
                             ...messageHistory
@@ -297,8 +248,6 @@ export default {
                 this.userInput = '';
             }
         },
-        
-        // Other existing methods remain the same
         scrollToBottom() {
             if (this.$refs.chatBody) {
                 this.$nextTick(() => {
@@ -326,7 +275,7 @@ export default {
       const { data, error } = await supabase
         .from('ongoingProjects')
         .select(`
-    projectDetails (projectName)
+    projectDetails (timeline)
   `)
         .eq('userID', user.id); // Use the appropriate column that links to the user
 
@@ -335,7 +284,6 @@ export default {
       for(let i of data){
         let response =i.projectDetails
         this.title.push(response.projectName)
-        console.log(this.title)
       }
       }
 
@@ -343,8 +291,8 @@ export default {
     }
     }
 };
-
 </script>
+
 <style>
 :root {
     --primary-color: #4a6fa5;
@@ -843,30 +791,5 @@ body.dark-mode {
     .resource-item {
         width: 100%;
     }
-    .project-selection {
-    margin: 20px 0;
-    text-align: left;
-    background-color: var(--card-bg);
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.project-selection label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    color: var(--primary-color);
-}
-
-.project-selection select {
-    width: 100%;
-    padding: 8px 12px;
-    border-radius: 4px;
-    border: 1px solid var(--border-color);
-    background-color: var(--bg-color);
-    color: var(--text-color);
-}
-
 }
 </style>
