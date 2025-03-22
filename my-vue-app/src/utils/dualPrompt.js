@@ -26,7 +26,7 @@ export function buildMetadataPrompt(changeText) {
   import frameworks from '@/data/frameworks.json'
   import caseStudies from '@/data/caseStudies.json'
   import communication from '@/data/communication.json'
-  import metrics from '@data/metrics.json'
+  import metrics from '@/data/metrics.json'
   // import trends from '@/data/trends.json'
   
   export function getContextFromMetadata(metadata) {
