@@ -5,6 +5,7 @@ import Contact from '../pages/Contact.vue';
 import NotFound from '../pages/NotFound.vue';
 import FAQ from '../pages/FAQ.vue';
 import Uploader from '../pages/Uploader.vue'
+import Emotion from '../pages/Emotion.vue'
 
 const routes = [
     { path: '/', component: Home },
@@ -12,6 +13,7 @@ const routes = [
     { path: '/contact', component: Contact },
     { path: '/faq', component: FAQ },
     { path: '/upload', component: Uploader },
+    { path: '/emotion', component: Emotion },
     { path: '/:pathMatch(.*)*', component: NotFound } // Catch-all for 404
 ];
 
