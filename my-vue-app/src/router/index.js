@@ -6,14 +6,18 @@ import NotFound from '../pages/NotFound.vue';
 import FAQ from '../pages/FAQ.vue';
 import Uploader from '../pages/Uploader.vue'
 import Emotion from '../pages/Emotion.vue'
+import Login from '../pages/Login.vue'
+import Register from '../pages/Register.vue'
 
 const routes = [
+    { path: '/login', name: 'Login', component: Login },
     { path: '/', component: Home },
     { path: '/about', component: About },
     { path: '/contact', component: Contact },
     { path: '/faq', component: FAQ },
     { path: '/upload', component: Uploader },
     { path: '/emotion', component: Emotion },
+    { path: '/register', name: 'Register', component: Register },
     { path: '/:pathMatch(.*)*', component: NotFound } // Catch-all for 404
 ];
 
