@@ -1,113 +1,214 @@
 <template>
-  <div class="faq-container">
-    <!-- Page Title -->
-    <h1 class="page-title">Change Management FAQ</h1>
-
-    <!-- Search Section -->
-    <div class="search-section">
-      <div class="search-input-container">
-        <span class="search-icon">&#128269;</span>
-        <input
-          type="text"
-          v-model="searchQuery"
-          placeholder="Type your question..."
-          class="search-input"
-        />
-      </div>
-      <button class="btn search-btn" @click="performSearch">
-        {{ message }}
-      </button>
-    </div>
-
-    <!-- FAQ List -->
-    <transition-group name="faq-list" tag="div" class="faq-list" v-if="filteredFaqs.length">
-      <div v-for="(faq, index) in filteredFaqs" :key="faq.question" class="faq-card">
-        <div class="faq-header" @click="toggleFaq(index)">
-          <h5 class="faq-question">{{ faq.question }}</h5>
-          <span class="toggle-icon">
-            <span v-if="activeFaqIndex === index">&#9660;</span>
-            <span v-else>&#9658;</span>
-          </span>
+  <div class="faq-container container py-5">
+    <!-- Page Title with Icon -->
+    <div class="row mb-5 text-center">
+      <div class="col-12">
+        <div class="title-icon mb-3">
+          <i class="bi bi-question-circle-fill text-primary display-4"></i>
         </div>
-        <transition name="accordion">
-          <div v-if="activeFaqIndex === index" class="faq-answer">
-            <p>{{ faq.answer }}</p>
-          </div>
-        </transition>
+        <h1 class="page-title display-4 fw-bold text-primary">Change Management FAQ</h1>
+        <p class="lead text-muted">Find answers to commonly asked questions about our change management process</p>
       </div>
-    </transition-group>
-
-    <!-- No Results Found -->
-    <div class="no-results" v-else>
-      <p>No matching FAQs found.</p>
     </div>
 
-    <!-- "Unanswered?" Section -->
-    <div class="unanswered-container">
-      <button class="btn unanswered-btn" @click="askAiChatbot">
-        Still have questions? Ask Jim!
-      </button>
+    <!-- Search Section with Enhanced UI -->
+    <div class="row justify-content-center mb-5">
+      <div class="col-md-8">
+        <div class="card shadow-sm border-0">
+          <div class="card-body p-4">
+            <div class="input-group">
+              <span class="input-group-text bg-light border-0">
+                <i class="bi bi-search"></i>
+              </span>
+              <input
+                type="text"
+                v-model="searchQuery"
+                placeholder="Type your question..."
+                class="form-control border-0 bg-light py-3"
+                aria-label="Search questions"
+              />
+              <button class="btn btn-primary px-4" @click="performSearch">
+                {{ message }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Chatbot Modal -->
-    <div v-if="showChatModal" class="chat-modal">
-      <div class="modal-overlay" @click="closeChatModal"></div>
-      <div class="modal-content">
-        <button class="close-btn" @click="closeChatModal">&times;</button>
-        <div class="ai-chatbot">
-          <h2>Ask Jim</h2>
-          <!-- Chat Messages -->
-          <div class="chat-messages">
-            <div
-              v-for="(msg, idx) in conversation"
-              :key="idx"
-              :class="['chat-message', msg.role]"
+    <!-- Category Tabs -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <ul class="nav nav-pills nav-fill">
+          <li class="nav-item">
+            <button class="nav-link active" @click="filterCategory('all')">All Questions</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" @click="filterCategory('process')">Process</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" @click="filterCategory('resources')">Resources</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" @click="filterCategory('support')">Support</button>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- FAQ List with Bootstrap Accordion -->
+    <div class="row" v-if="filteredFaqs.length">
+      <div class="col-12">
+        <div class="accordion accordion-flush" id="faqAccordion">
+          <transition-group name="faq-list">
+            <div 
+              v-for="(faq, index) in filteredFaqs" 
+              :key="faq.question" 
+              class="accordion-item border-0 mb-3 shadow-sm rounded"
             >
-              <div class="message-content">
-                <strong>{{ msg.role === 'user' ? 'You' : 'Jim' }}:</strong>
-                <!-- For Jim's messages, format using v-html to preserve markdown formatting -->
-                <span v-if="msg.role === 'assistant'" v-html="formatMessage(msg.content)"></span>
-                <span v-else>{{ msg.content }}</span>
+              <h2 class="accordion-header" :id="'heading' + index">
+                <button 
+                  class="accordion-button rounded" 
+                  :class="{ 'collapsed': activeFaqIndex !== index }"
+                  type="button" 
+                  @click="toggleFaq(index)"
+                  :aria-expanded="activeFaqIndex === index"
+                  :aria-controls="'collapse' + index"
+                >
+                  <div class="d-flex align-items-center">
+                    <i class="bi bi-patch-question-fill text-primary me-3 fs-4"></i>
+                    <span class="fw-medium">{{ faq.question }}</span>
+                  </div>
+                </button>
+              </h2>
+              <div 
+                :id="'collapse' + index" 
+                class="accordion-collapse collapse" 
+                :class="{ 'show': activeFaqIndex === index }"
+                :aria-labelledby="'heading' + index"
+              >
+                <div class="accordion-body bg-light">
+                  <div class="d-flex">
+                    <i class="bi bi-info-circle-fill text-success mt-1 me-3 fs-5"></i>
+                    <p class="mb-0">{{ faq.answer }}</p>
+                  </div>
+                </div>
               </div>
-              <!-- Show actions for Jim's messages -->
-              <div v-if="msg.role === 'assistant'" class="message-actions">
-                <button
-                  class="btn action-btn"
-                  :class="{ liked: msg.feedback === 'like' }"
-                  @click="likeMessage(idx)"
-                >
-                  Like
-                </button>
-                <button
-                  class="btn action-btn"
-                  :class="{ disliked: msg.feedback === 'dislike' }"
-                  @click="dislikeMessage(idx)"
-                >
-                  Dislike
-                </button>
-                <!-- Only show regenerate for the last assistant message -->
-                <button
-                  v-if="idx === lastAssistantIndex"
-                  class="btn action-btn"
-                  @click="regenerateResponse"
-                >
-                  Regenerate
+            </div>
+          </transition-group>
+        </div>
+      </div>
+    </div>
+
+    <!-- No Results Found with Illustration -->
+    <div class="row justify-content-center text-center py-5" v-else>
+      <div class="col-md-6">
+        <img src="@/assets/no-results.png" alt="No results" class="img-fluid mb-4" style="max-height: 200px;">
+        <h3 class="text-muted">No matching FAQs found</h3>
+        <p class="lead">Try adjusting your search terms or browse all questions</p>
+        <button class="btn btn-outline-primary mt-3" @click="searchQuery = ''">
+          View All Questions
+        </button>
+      </div>
+    </div>
+
+    <!-- "Unanswered?" Section with Card Design -->
+    <div class="row justify-content-center mt-5">
+      <div class="col-md-8">
+        <div class="card bg-primary text-white shadow border-0">
+          <div class="card-body p-5 text-center">
+            <div class="row align-items-center">
+              <div class="col-md-3 d-none d-md-block">
+                <img src="@/assets/question.png" alt="Ask Jim" class="img-fluid" style="max-height: 120px;">
+              </div>
+              <div class="col-md-9">
+                <h3 class="mb-3">Still have questions?</h3>
+                <p class="mb-4">Our change management expert Jim is ready to help you with personalized answers</p>
+                <button class="btn btn-light btn-lg px-4" @click="askAiChatbot">
+                  <i class="bi bi-chat-dots-fill me-2"></i> Ask Jim!
                 </button>
               </div>
             </div>
           </div>
-          <!-- Chat Input -->
-          <div class="chat-input-section">
-            <input
-              type="text"
-              v-model="userMessage"
-              @keyup.enter="sendMessage"
-              placeholder="Type your question for Jim..."
-              class="chat-input"
-            />
-            <button class="btn send-btn" @click="sendMessage">
-              Send
-            </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chatbot Modal with Bootstrap Modal -->
+    <div class="modal fade" id="chatModal" tabindex="-1" :class="{ 'show': showChatModal }" v-if="showChatModal">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title">
+              <i class="bi bi-robot me-2"></i> Ask Jim - Change Management Expert
+            </h5>
+            <button type="button" class="btn-close btn-close-white" @click="closeChatModal"></button>
+          </div>
+          <div class="modal-body p-0">
+            <!-- Chat Messages -->
+            <div class="chat-messages p-3" style="height: 400px; overflow-y: auto;">
+              <div
+                v-for="(msg, idx) in conversation"
+                :key="idx"
+                :class="['chat-message mb-3', msg.role === 'user' ? 'text-end' : '']"
+              >
+                <div 
+                  :class="['d-inline-block p-3 rounded-3 shadow-sm', 
+                    msg.role === 'user' ? 'bg-primary text-white' : 'bg-light']"
+                  style="max-width: 80%;"
+                >
+                  <div class="message-content">
+                    <div class="d-flex align-items-center mb-2">
+                      <div v-if="msg.role !== 'user'" class="avatar me-2 bg-primary text-white rounded-circle">
+                        <span class="fw-bold">J</span>
+                      </div>
+                      <strong>{{ msg.role === 'user' ? 'You' : 'Jim' }}</strong>
+                    </div>
+                    <div v-if="msg.role === 'assistant'" v-html="formatMessage(msg.content)"></div>
+                    <div v-else>{{ msg.content }}</div>
+                  </div>
+                </div>
+                <!-- Message Actions -->
+                <div v-if="msg.role === 'assistant'" class="message-actions mt-2">
+                  <button
+                    class="btn btn-sm"
+                    :class="msg.feedback === 'like' ? 'btn-success' : 'btn-outline-secondary'"
+                    @click="likeMessage(idx)"
+                  >
+                    <i class="bi bi-hand-thumbs-up"></i>
+                  </button>
+                  <button
+                    class="btn btn-sm ms-1"
+                    :class="msg.feedback === 'dislike' ? 'btn-danger' : 'btn-outline-secondary'"
+                    @click="dislikeMessage(idx)"
+                  >
+                    <i class="bi bi-hand-thumbs-down"></i>
+                  </button>
+                  <button
+                    v-if="idx === lastAssistantIndex"
+                    class="btn btn-sm btn-outline-primary ms-1"
+                    @click="regenerateResponse"
+                  >
+                    <i class="bi bi-arrow-repeat"></i> Regenerate
+                  </button>
+                </div>
+              </div>
+            </div>
+            <!-- Chat Input -->
+            <div class="chat-input-section p-3 border-top">
+              <div class="input-group">
+                <input
+                  type="text"
+                  v-model="userMessage"
+                  @keyup.enter="sendMessage"
+                  placeholder="Type your question for Jim..."
+                  class="form-control"
+                />
+                <button class="btn btn-primary px-4" @click="sendMessage">
+                  <i class="bi bi-send-fill"></i>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -126,44 +227,44 @@ export default {
       message: "Search",
       searchQuery: "",
       activeFaqIndex: null,
+      activeCategory: 'all',
       faqs: [
         {
           question: "What is change management?",
-          answer:
-            "Change management is a structured process and set of tools for leading the people side of change to achieve a desired outcome."
+          answer: "Change management is a structured process and set of tools for leading the people side of change to achieve a desired outcome.",
+          category: "process"
         },
         {
           question: "Why is change management important?",
-          answer:
-            "Effective change management increases the likelihood of achieving project goals on time and on budget, while minimizing resistance and disruption."
+          answer: "Effective change management increases the likelihood of achieving project goals on time and on budget, while minimizing resistance and disruption.",
+          category: "process"
         },
         {
           question: "Where can I find the archive of past change management campaigns?",
-          answer:
-            "We maintain an internal archive with detailed case studies of past campaigns, lessons learned, and recommended strategies. Access it via the 'Archive' section on our intranet or contact the Change Management Office."
+          answer: "We maintain an internal archive with detailed case studies of past campaigns, lessons learned, and recommended strategies. Access it via the 'Archive' section on our intranet or contact the Change Management Office.",
+          category: "resources"
         },
         {
           question: "How do we apply lessons learned to future campaigns?",
-          answer:
-            "Each completed campaign's debrief includes best practices and pitfalls. These insights are compiled in the archive and regularly reviewed during planning sessions for new initiatives."
+          answer: "Each completed campaign's debrief includes best practices and pitfalls. These insights are compiled in the archive and regularly reviewed during planning sessions for new initiatives.",
+          category: "process"
         },
         {
           question: "Who is responsible for overseeing change management efforts?",
-          answer:
-            "The Change Management Office (CMO) leads and coordinates major transformations, working closely with stakeholders to ensure consistent communication and support."
+          answer: "The Change Management Office (CMO) leads and coordinates major transformations, working closely with stakeholders to ensure consistent communication and support.",
+          category: "support"
         },
         {
           question: "How do we measure the success of a change initiative?",
-          answer:
-            "Key metrics include employee adoption rates, feedback scores, project milestone completions, and ROI. We compare these against objectives set at the start of each campaign."
+          answer: "Key metrics include employee adoption rates, feedback scores, project milestone completions, and ROI. We compare these against objectives set at the start of each campaign.",
+          category: "process"
         },
         {
           question: "Where can I get personalized support during a change?",
-          answer:
-            "Reach out to your department's Change Champion or the CMO for guidance on training, communication, and stakeholder engagement resources."
+          answer: "Reach out to your department's Change Champion or the CMO for guidance on training, communication, and stakeholder engagement resources.",
+          category: "support"
         }
       ],
-
       // Modal and Chat state
       showChatModal: false,
       conversation: [], // Array of chat messages (each can have a "feedback" property)
@@ -172,13 +273,24 @@ export default {
   },
   computed: {
     filteredFaqs() {
-      if (!this.searchQuery) return this.faqs;
-      const query = this.searchQuery.toLowerCase();
-      return this.faqs.filter(
-        (faq) =>
-          faq.question.toLowerCase().includes(query) ||
-          faq.answer.toLowerCase().includes(query)
-      );
+      let filtered = this.faqs;
+      
+      // Filter by category first
+      if (this.activeCategory !== 'all') {
+        filtered = filtered.filter(faq => faq.category === this.activeCategory);
+      }
+      
+      // Then filter by search query
+      if (this.searchQuery) {
+        const query = this.searchQuery.toLowerCase();
+        filtered = filtered.filter(
+          (faq) =>
+            faq.question.toLowerCase().includes(query) ||
+            faq.answer.toLowerCase().includes(query)
+        );
+      }
+      
+      return filtered;
     },
     // Computes the index of the last assistant message
     lastAssistantIndex() {
@@ -334,292 +446,68 @@ export default {
 };
 </script>
 
-<style scoped>
-/* Overall Container */
+<style>
+/* Import Bootstrap CSS and Icons */
+@import 'bootstrap/dist/css/bootstrap.min.css';
+@import 'bootstrap-icons/font/bootstrap-icons.css';
+
+/* Custom Styling */
 .faq-container {
-  max-width: 800px;
-  margin: 2rem auto;
-  padding: 2rem;
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  color: #333;
 }
 
-/* Page Title */
-.page-title {
-  font-size: 2.5rem;
-  margin-bottom: 1.5rem;
-  text-align: center;
-  color: #2c3e50;
-  font-weight: 700;
-}
-
-/* Search Section */
-.search-section {
+/* Avatar styling */
+.avatar {
+  width: 30px;
+  height: 30px;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  margin-bottom: 2rem;
-}
-.search-input-container {
-  position: relative;
-  width: 100%;
-  max-width: 400px;
-}
-.search-icon {
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 1.2rem;
-  color: #95a5a6;
-}
-.search-input {
-  width: 100%;
-  padding: 0.75rem 0.75rem 0.75rem 2.5rem;
-  border: 1px solid #dcdcdc;
-  border-radius: 8px;
-  font-size: 1rem;
-  outline: none;
-  transition: border 0.2s ease;
-}
-.search-input:focus {
-  border-color: #007bff;
-}
-.search-btn {
-  margin-top: 1rem;
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
-  font-weight: 600;
-  border: none;
-  border-radius: 8px;
-  background-color: #007bff;
-  color: #fff;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-.search-btn:hover {
-  background-color: #0056b3;
+  justify-content: center;
 }
 
-/* FAQ List */
-.faq-list {
-  margin-top: 1.5rem;
-}
-/* FAQ Card */
-.faq-card {
-  background: #f7f9fb;
-  border-radius: 8px;
-  padding: 1rem 1.5rem;
-  margin-bottom: 1rem;
-  cursor: pointer;
-  transition: background 0.3s ease, transform 0.3s ease;
-}
-.faq-card:hover {
-  background: #eef2f6;
-  transform: translateY(-2px);
-}
-.faq-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.faq-question {
-  font-size: 1.1rem;
-  margin: 0;
-  font-weight: 500;
-}
-.toggle-icon {
-  font-size: 1.4rem;
-  color: #007bff;
-}
-/* FAQ Answer */
-.faq-answer {
-  margin-top: 0.75rem;
-  font-size: 0.95rem;
-  line-height: 1.6;
-  color: #555;
-}
-/* No Results */
-.no-results {
-  text-align: center;
-  margin-top: 2rem;
-  font-size: 1.1rem;
-  color: #777;
+/* Accordion customization */
+.accordion-button:not(.collapsed) {
+  background-color: rgba(13, 110, 253, 0.1);
+  color: #0d6efd;
+  box-shadow: none;
 }
 
-/* Unanswered Button */
-.unanswered-container {
-  text-align: center;
-  margin-top: 2rem;
-}
-.unanswered-btn {
-  font-weight: 600;
-  border: none;
-  border-radius: 8px;
-  padding: 0.75rem 1.5rem;
-  color: #fff;
-  background-color: #6c757d;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-.unanswered-btn:hover {
-  background-color: #5a6268;
+.accordion-button:focus {
+  box-shadow: none;
+  border-color: rgba(13, 110, 253, 0.25);
 }
 
-/* Transitions */
+/* Animations */
 .faq-list-enter-active,
 .faq-list-leave-active {
   transition: all 0.3s ease;
 }
-.faq-list-enter,
+.faq-list-enter-from,
 .faq-list-leave-to {
   opacity: 0;
-  transform: translateY(-10px);
-}
-.accordion-enter-active,
-.accordion-leave-active {
-  transition: max-height 0.3s ease, opacity 0.3s ease;
-}
-.accordion-enter {
-  max-height: 0;
-  opacity: 0;
-}
-.accordion-enter-to {
-  max-height: 400px;
-  opacity: 1;
-}
-.accordion-leave {
-  max-height: 400px;
-  opacity: 1;
-}
-.accordion-leave-to {
-  max-height: 0;
-  opacity: 0;
+  transform: translateY(-20px);
 }
 
-/* Chatbot Modal */
-.chat-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1000;
-}
-.modal-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.4);
-}
-.modal-content {
-  position: relative;
-  background: #fff;
-  margin: 5% auto;
-  padding: 2rem;
-  max-width: 600px;
-  border-radius: 12px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-}
-.close-btn {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: transparent;
-  border: none;
-  font-size: 1.75rem;
-  color: #aaa;
-  cursor: pointer;
-  transition: color 0.2s ease;
-}
-.close-btn:hover {
-  color: #333;
+/* Modal backdrop */
+.modal.show {
+  display: block;
+  background-color: rgba(0, 0, 0, 0.5);
 }
 
-/* AI Chatbot Styles */
-.ai-chatbot {
-  margin-top: 1rem;
-  text-align: center;
+/* Title icon animation */
+.title-icon {
+  animation: pulse 2s infinite;
 }
-.ai-chatbot h2 {
-  margin-bottom: 1rem;
-  color: #007bff;
-}
-.chat-messages {
-  max-height: 500px;
-  min-height: 300px;
-  overflow-y: auto;
-  background: #f1f4f8;
-  border-radius: 8px;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  text-align: left;
-}
-.chat-message {
-  margin-bottom: 0.75rem;
-  line-height: 1.5;
-}
-.message-content {
-  display: inline-block;
-}
-.message-actions {
-  margin-top: 0.5rem;
-}
-.message-actions .action-btn {
-  margin-right: 0.5rem;
-  padding: 0.4rem 0.8rem;
-  font-size: 0.85rem;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  background-color: #e7e7e7;
-  color: #333;
-  transition: background 0.2s ease;
-}
-.message-actions .action-btn.liked {
-  background-color: #28a745;
-  color: #fff;
-}
-.message-actions .action-btn.disliked {
-  background-color: #dc3545;
-  color: #fff;
-}
-.message-actions .action-btn:hover {
-  background-color: #d4d4d4;
-}
-.chat-input-section {
-  display: flex;
-  gap: 0.5rem;
-}
-.chat-input {
-  flex: 1;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 1rem;
-  outline: none;
-  transition: border 0.2s ease;
-}
-.chat-input:focus {
-  border-color: #007bff;
-}
-.send-btn {
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
-  font-weight: 600;
-  border: none;
-  border-radius: 8px;
-  background-color: #007bff;
-  color: #fff;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-.send-btn:hover {
-  background-color: #0056b3;
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 </style>
