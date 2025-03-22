@@ -55,7 +55,18 @@ export function buildMetadataPrompt(changeText) {
   
   // Step 3: Build final prompt with injected context
   export function buildFinalPrompt({ changeText, model, trend, caseStudies }) {
-    const modelBlock = model ? `### Framework – ${model.name}\n${model.description}\n${model.stages.map(s => `- ${s.stage}: ${s.details}`).join('\n')}` : ''
+    const modelBlock = model ? `### Framework – ${model.name}
+${model.description}
+
+**Stages:**
+${model.stages.map(s => `- **${s.stage}**${s.brief ? ` (${s.brief})` : ''}: ${s.details}`).join('\n\n')}
+
+${model.Implementation ? `**Implementation:**
+${Array.isArray(model.Implementation) ? model.Implementation.map(imp => Object.entries(imp).filter(([k, v]) => k && v).map(([k, v]) => `- **${k}**: ${v}`).join('\n')).join('\n') : model.Implementation}` : ''}
+
+${model.Challenges ? `**Challenges:**
+${model.Challenges}` : ''}` : ''
+
     const trendBlock = trend ? `### Industry Trends – ${trend.industry}\n${trend.details}` : ''
     const casesBlock = caseStudies.length > 0 ? `### Case Studies\n${caseStudies.map(c => `- ${c.title}: ${c.summary}`).join('\n')}` : ''
   
