@@ -52,16 +52,47 @@
         <button class="close-btn" @click="closeChatModal">&times;</button>
         <div class="ai-chatbot">
           <h2>AI Chatbot</h2>
+          <!-- Chat Messages -->
           <div class="chat-messages">
             <div
               v-for="(msg, idx) in conversation"
               :key="idx"
               :class="['chat-message', msg.role]"
             >
-              <strong>{{ msg.role === 'user' ? 'You' : 'AI' }}:</strong>
-              <span>{{ msg.content }}</span>
+              <div class="message-content">
+                <strong>{{ msg.role === 'user' ? 'You' : 'AI' }}:</strong>
+                <!-- For assistant messages, format using v-html to preserve paragraphs/newlines -->
+                <span v-if="msg.role === 'assistant'" v-html="formatMessage(msg.content)"></span>
+                <span v-else>{{ msg.content }}</span>
+              </div>
+              <!-- Show actions for assistant messages -->
+              <div v-if="msg.role === 'assistant'" class="message-actions">
+                <button
+                  class="btn action-btn"
+                  :class="{ liked: msg.feedback === 'like' }"
+                  @click="likeMessage(idx)"
+                >
+                  Like
+                </button>
+                <button
+                  class="btn action-btn"
+                  :class="{ disliked: msg.feedback === 'dislike' }"
+                  @click="dislikeMessage(idx)"
+                >
+                  Dislike
+                </button>
+                <!-- Only show regenerate for the last assistant message -->
+                <button
+                  v-if="idx === lastAssistantIndex"
+                  class="btn action-btn"
+                  @click="regenerateResponse"
+                >
+                  Regenerate
+                </button>
+              </div>
             </div>
           </div>
+          <!-- Chat Input -->
           <div class="chat-input-section">
             <input
               type="text"
@@ -128,7 +159,7 @@ export default {
 
       // Modal and Chat state
       showChatModal: false,
-      conversation: [],
+      conversation: [], // Array of chat messages (each can have a "feedback" property)
       userMessage: ""
     };
   },
@@ -141,6 +172,15 @@ export default {
           faq.question.toLowerCase().includes(query) ||
           faq.answer.toLowerCase().includes(query)
       );
+    },
+    // Computes the index of the last assistant message
+    lastAssistantIndex() {
+      for (let i = this.conversation.length - 1; i >= 0; i--) {
+        if (this.conversation[i].role === "assistant") {
+          return i;
+        }
+      }
+      return -1;
     }
   },
   methods: {
@@ -162,10 +202,9 @@ export default {
     async sendMessage() {
       const userInput = this.userMessage.trim();
       if (!userInput) return;
-
+      // Add user's message to conversation
       this.conversation.push({ role: "user", content: userInput });
       this.userMessage = "";
-
       try {
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
           method: "POST",
@@ -179,7 +218,6 @@ export default {
             max_tokens: 200
           })
         });
-
         const data = await response.json();
         const aiReply = data?.choices?.[0]?.message?.content || "No response received.";
         this.conversation.push({ role: "assistant", content: aiReply });
@@ -190,6 +228,49 @@ export default {
           content: "Sorry, I couldn't process your request."
         });
       }
+    },
+    async regenerateResponse() {
+      const lastIdx = this.lastAssistantIndex;
+      if (lastIdx !== -1) {
+        this.conversation.splice(lastIdx, 1);
+      }
+      try {
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY_FAQ}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: "openai/gpt-3.5-turbo",
+            messages: this.conversation,
+            max_tokens: 200
+          })
+        });
+        const data = await response.json();
+        const aiReply = data?.choices?.[0]?.message?.content || "No response received.";
+        this.conversation.push({ role: "assistant", content: aiReply });
+      } catch (error) {
+        console.error("Error regenerating response:", error);
+        this.conversation.push({
+          role: "assistant",
+          content: "Sorry, I couldn't process your request."
+        });
+      }
+    },
+    likeMessage(index) {
+      // Toggle like state; if already liked, remove it.
+      this.conversation[index].feedback =
+        this.conversation[index].feedback === "like" ? null : "like";
+    },
+    dislikeMessage(index) {
+      // Toggle dislike state; if already disliked, remove it.
+      this.conversation[index].feedback =
+        this.conversation[index].feedback === "dislike" ? null : "dislike";
+    },
+    formatMessage(message) {
+      // Replace newline characters with <br/> for proper paragraph formatting
+      return message.replace(/\n/g, "<br/>");
     }
   }
 };
@@ -416,7 +497,7 @@ export default {
   color: #333;
 }
 
-/* AI Chatbot Styles */
+/* AI Chatbot */
 .ai-chatbot {
   margin-top: 1rem;
   text-align: center;
@@ -428,7 +509,8 @@ export default {
 }
 
 .chat-messages {
-  max-height: 250px;
+  max-height: 500px;   /* Increased chatbox size */
+  min-height: 300px;    /* Ensure a minimum height */
   overflow-y: auto;
   background: #f1f4f8;
   border-radius: 8px;
@@ -442,14 +524,44 @@ export default {
   line-height: 1.5;
 }
 
-.chat-message.user {
-  text-align: right;
+.message-content {
+  display: inline-block;
 }
 
-.chat-message.assistant {
-  text-align: left;
+.message-actions {
+  margin-top: 0.5rem;
 }
 
+/* Style action buttons */
+.message-actions .action-btn {
+  margin-right: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background-color: #e7e7e7;
+  color: #333;
+  transition: background 0.2s ease;
+}
+
+/* When liked, turn green */
+.message-actions .action-btn.liked {
+  background-color: #28a745;
+  color: #fff;
+}
+
+/* When disliked, turn red */
+.message-actions .action-btn.disliked {
+  background-color: #dc3545;
+  color: #fff;
+}
+
+.message-actions .action-btn:hover {
+  background-color: #d4d4d4;
+}
+
+/* Chat Input Section */
 .chat-input-section {
   display: flex;
   gap: 0.5rem;
