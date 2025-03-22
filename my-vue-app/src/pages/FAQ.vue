@@ -39,20 +39,18 @@
     <!-- Category Tabs -->
     <div class="row mb-4">
       <div class="col-12">
-        <ul class="nav nav-pills nav-fill">
-          <li class="nav-item">
-            <button class="nav-link active" @click="filterCategory('all')">All Questions</button>
-          </li>
-          <li class="nav-item">
-            <button class="nav-link" @click="filterCategory('process')">Process</button>
-          </li>
-          <li class="nav-item">
-            <button class="nav-link" @click="filterCategory('resources')">Resources</button>
-          </li>
-          <li class="nav-item">
-            <button class="nav-link" @click="filterCategory('support')">Support</button>
-          </li>
-        </ul>
+        <ul class="nav nav-pills">
+  <li class="nav-item" v-for="category in ['all', 'process', 'resources', 'support']" :key="category">
+    <button 
+      class="nav-link" 
+      :class="{ active: activeCategory === category }"
+      @click="filterCategory(category)"
+    >
+      {{ category.charAt(0).toUpperCase() + category.slice(1) }} Questions
+    </button>
+  </li>
+</ul>
+
       </div>
     </div>
 
@@ -322,6 +320,9 @@ export default {
         });
       }
     },
+    filterCategory(category) {
+      this.activeCategory = category;
+    },
     closeChatModal() {
       this.showChatModal = false;
     },
@@ -442,6 +443,7 @@ export default {
       // Use marked to convert markdown to HTML
       return marked(message);
     }
+    
   }
 };
 </script>
@@ -510,4 +512,28 @@ export default {
     transform: scale(1);
   }
 }
+.nav-pills {
+  margin-bottom: 1.5rem;
+}
+
+.nav-pills .nav-item .nav-link {
+  color: #333;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  margin-right: 0.5rem;
+  border-radius: 0.25rem;
+  padding: 0.5rem 1rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.nav-pills .nav-item .nav-link:hover {
+  background-color: #e9ecef;
+}
+
+.nav-pills .nav-item .nav-link.active {
+  color: #fff;
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
 </style>
