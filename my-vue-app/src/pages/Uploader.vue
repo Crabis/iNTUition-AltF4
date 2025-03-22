@@ -7,18 +7,20 @@
           <h4 class="mb-0">Change Plan Document Analysis</h4>
         </div>
       </div>
-      
+
       <div class="card-body p-0">
         <!-- Hero section with background image -->
         <div class="position-relative mb-4">
-          <div class="hero-banner" style="background-image: url('https://images.unsplash.com/photo-1557804506-669a67965ba0?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');">
+          <div class="hero-banner"
+            style="background-image: url('https://images.unsplash.com/photo-1557804506-669a67965ba0?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');">
             <div class="hero-overlay p-5">
               <h2 class="text-white mb-3">Transform Your Change Management</h2>
-              <p class="text-white-75 mb-4">Upload your document and get AI-powered recommendations tailored to your organization's needs</p>
+              <p class="text-white-75 mb-4">Upload your document and get AI-powered recommendations tailored to your
+                organization's needs</p>
             </div>
           </div>
         </div>
-        
+
         <div class="p-4 p-lg-5">
           <div class="row g-4">
             <!-- Upload section -->
@@ -29,21 +31,15 @@
                 </div>
                 <h5 class="mb-3">Upload Your Document</h5>
                 <p class="text-muted mb-3">Supported formats: PDF, DOCX, TXT</p>
-                
+
                 <div class="d-grid gap-2 col-md-8 mx-auto">
                   <label for="fileUpload" class="btn btn-outline-primary position-relative overflow-hidden">
                     <i class="bi bi-file-earmark me-2"></i>Select File
-                    <input 
-                      id="fileUpload" 
-                      type="file" 
-                      @change="handleFileUpload" 
-                      accept=".txt,.pdf,.docx" 
-                      class="position-absolute" 
-                      style="opacity: 0; top: 0; left: 0; width: 100%; height: 100%;" 
-                    />
+                    <input id="fileUpload" type="file" @change="handleFileUpload" accept=".txt,.pdf,.docx"
+                      class="position-absolute" style="opacity: 0; top: 0; left: 0; width: 100%; height: 100%;" />
                   </label>
                 </div>
-                
+
                 <div v-if="selectedFileName" class="mt-3">
                   <div class="file-preview p-2 bg-white rounded border d-flex align-items-center">
                     <i class="bi" :class="fileIcon"></i>
@@ -51,13 +47,13 @@
                     <span class="badge bg-success ms-auto">Ready</span>
                   </div>
                 </div>
-                
+
                 <!-- Decorative elements -->
                 <div class="upload-decoration upload-decoration-1"></div>
                 <div class="upload-decoration upload-decoration-2"></div>
               </div>
             </div>
-            
+
             <!-- Prompt section -->
             <div class="col-lg-6">
               <div class="card h-100 border-0 shadow-sm">
@@ -66,20 +62,16 @@
                 </div>
                 <div class="card-body">
                   <div class="form-floating mb-3">
-                    <textarea
-                      v-model="userPrompt"
-                      class="form-control"
-                      placeholder="Describe your requirements"
-                      id="promptTextarea"
-                      style="height: 120px"
-                    ></textarea>
+                    <textarea v-model="userPrompt" class="form-control" placeholder="Describe your requirements"
+                      id="promptTextarea" style="height: 120px"></textarea>
                     <label for="promptTextarea">Describe your change model preferences</label>
                   </div>
-                  
+
                   <div class="text-muted small mb-3">
-                    <i class="bi bi-info-circle me-1"></i> Describe how you'd like your change model to be handled (e.g., focus on agility, minimize disruption, etc.)
+                    <i class="bi bi-info-circle me-1"></i> Describe how you'd like your change model to be handled
+                    (e.g., focus on agility, minimize disruption, etc.)
                   </div>
-                  
+
                   <!-- Suggestion chips -->
                   <div class="d-flex flex-wrap gap-2 mb-3">
                     <span class="suggestion-chip" @click="addSuggestion('Focus on agility')">
@@ -95,7 +87,7 @@
                 </div>
               </div>
             </div>
-            
+
             <!-- Preview section -->
             <div v-if="fileText" class="col-12">
               <div class="card border-0 shadow-sm">
@@ -122,20 +114,18 @@
               </div>
             </div>
           </div>
-          
+
           <!-- Action button -->
           <div class="mt-4 text-center">
-            <button
-              :disabled="!fileText || !userPrompt || loading"
-              @click="sendToAPI"
-              class="btn btn-lg btn-primary px-5 py-3 action-button"
-            >
-              <span v-if="loading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            <button :disabled="!fileText || !userPrompt || loading" @click="sendToAPI"
+              class="btn btn-lg btn-primary px-5 py-3 action-button">
+              <span v-if="loading" class="spinner-border spinner-border-sm me-2" role="status"
+                aria-hidden="true"></span>
               <i v-else class="bi bi-magic me-2"></i>
               Generate Recommendations
             </button>
           </div>
-          
+
           <!-- Process visualization -->
           <div v-if="!apiResponse && fileText" class="process-visualization mt-5">
             <div class="process-steps">
@@ -167,7 +157,7 @@
           </div>
         </div>
       </div>
-      
+
       <!-- Results section -->
       <div v-if="apiResponse" class="card-footer p-0 bg-white">
         <div class="results-container">
@@ -177,14 +167,14 @@
               <h4 class="mb-0">AI Recommendations</h4>
             </div>
           </div>
-          
+
           <div class="p-4 p-lg-5">
             <div class="card mb-4 border-0 shadow-sm">
               <div class="card-body">
                 <div class="recommendations-content" v-html="apiResponse"></div>
               </div>
             </div>
-            
+
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
               <div class="results-stats">
                 <span class="badge bg-light text-dark me-2">
@@ -194,24 +184,19 @@
                   <i class="bi bi-calendar me-1"></i> {{ currentDate }}
                 </span>
               </div>
-              
+
               <div class="d-flex gap-2">
-                <button class="btn btn-outline-primary">
+                <button class="btn btn-outline-primary" @click="downloadPdf">
                   <i class="bi bi-download me-1"></i>Download PDF
                 </button>
-                <button class="btn btn-outline-secondary">
-                  <i class="bi bi-share me-1"></i>Share
-                </button>
-                <button class="btn btn-outline-success">
-                  <i class="bi bi-check-circle me-1"></i>Implement
-                </button>
               </div>
+
             </div>
           </div>
         </div>
       </div>
     </div>
-    
+
     <!-- Testimonials -->
     <div v-if="!apiResponse" class="mt-5">
       <h5 class="text-center mb-4">Trusted by Enterprise Teams</h5>
@@ -228,7 +213,8 @@
                   <p class="text-muted small mb-0">Change Manager, Fortune 500</p>
                 </div>
               </div>
-              <p class="testimonial-text">"This tool transformed our change management process. We reduced implementation time by 40% and improved adoption rates."</p>
+              <p class="testimonial-text">"This tool transformed our change management process. We reduced
+                implementation time by 40% and improved adoption rates."</p>
               <div class="text-warning">
                 <i class="bi bi-star-fill"></i>
                 <i class="bi bi-star-fill"></i>
@@ -251,7 +237,8 @@
                   <p class="text-muted small mb-0">CTO, Tech Innovations Inc.</p>
                 </div>
               </div>
-              <p class="testimonial-text">"The AI recommendations were spot-on. We successfully migrated our entire system with minimal disruption to operations."</p>
+              <p class="testimonial-text">"The AI recommendations were spot-on. We successfully migrated our entire
+                system with minimal disruption to operations."</p>
               <div class="text-warning">
                 <i class="bi bi-star-fill"></i>
                 <i class="bi bi-star-fill"></i>
@@ -286,6 +273,24 @@ const currentDate = ref(new Date().toLocaleDateString())
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`
 
+function downloadPdf() {
+  // Create element <a> for downloading PDF
+  const link = document.createElement('a');
+
+  // You can replace this with the actual PDF URL
+  const pdfUrl = '/path/to/your/file.pdf';
+
+  link.href = pdfUrl;
+  link.download = 'document.pdf';
+
+  // Simulate a click on the element
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+
+
 function togglePreview() {
   showPreview.value = !showPreview.value
 }
@@ -308,9 +313,9 @@ function addSuggestion(text) {
 function handleFileUpload(e) {
   const file = e.target.files[0]
   if (!file) return
-  
+
   selectedFileName.value = file.name
-  
+
   // Set file icon based on file type
   if (file.name.endsWith('.txt')) {
     fileIcon.value = 'bi-file-earmark-text'
@@ -319,7 +324,7 @@ function handleFileUpload(e) {
   } else if (file.name.endsWith('.pdf')) {
     fileIcon.value = 'bi-file-earmark-pdf'
   }
-  
+
   const reader = new FileReader()
   loading.value = true
 
@@ -612,15 +617,15 @@ body {
   line-height: 1.6;
 }
 
-.recommendations-content h1, 
-.recommendations-content h2, 
+.recommendations-content h1,
+.recommendations-content h2,
 .recommendations-content h3 {
   margin-top: 1.5rem;
   margin-bottom: 1rem;
   color: #212529;
 }
 
-.recommendations-content ul, 
+.recommendations-content ul,
 .recommendations-content ol {
   padding-left: 1.5rem;
   margin-bottom: 1rem;
@@ -667,11 +672,21 @@ body {
 
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.card, .upload-container, .action-button, .testimonial-card {
+.card,
+.upload-container,
+.action-button,
+.testimonial-card {
   animation: fadeIn 0.5s ease-out forwards;
 }
 
@@ -681,20 +696,20 @@ body {
     left: 20px;
     right: 20px;
   }
-  
+
   .process-icon {
     width: 40px;
     height: 40px;
   }
-  
+
   .process-icon i {
     font-size: 1.25rem;
   }
-  
+
   .process-text {
     font-size: 0.75rem;
   }
-  
+
   .hero-banner {
     height: 150px;
   }
