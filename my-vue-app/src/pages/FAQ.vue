@@ -358,7 +358,7 @@ export default {
     Clear and concise
     Formatted in markdown
     Case Studies Reference
-    You have access to a collection of past case studies ${caseStudies} on organizational change, categorized by different change management frameworks. These include:
+    You have access to a collection of past case studies ${JSON.stringify(caseStudies)} on organizational change, categorized by different change management frameworks. These include:
     Lewin's 3-Stage Model
     McKinsey's 7-S Framework
     Nudge Theory
@@ -390,7 +390,7 @@ export default {
       );
 
       try {
-        console.log(caseStudies);
+        console.log(messagesToSend);
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
           method: "POST",
           headers: {
@@ -399,7 +399,7 @@ export default {
           },
           body: JSON.stringify({
             model: "google/gemini-2.0-flash-exp:free",
-            messages: messagesToSend
+            messages: messagesToSend.content
           })
         });
         const data = await response.json();
