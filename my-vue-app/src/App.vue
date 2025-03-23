@@ -3,7 +3,7 @@
     <!-- Only show navbar if not on login or register pages -->
     <nav v-if="!isAuthPage" class="navbar navbar-expand-lg navbar-light bg-light">
       <div class="container">
-        <a class="navbar-brand" href="#">VueApp</a>
+        <a class="navbar-brand" href="#">Change.ai</a>
         <button
           class="navbar-toggler"
           type="button"
@@ -26,7 +26,7 @@
               <router-link class="nav-link" to="/upload">Start Change</router-link>
             </li>
             <li class="nav-item">
-              <router-link class="nav-link" to="/emotion">Emotion</router-link>
+              <router-link class="nav-link" to="/emotion">Empathy Pilot</router-link>
             </li>
           </ul>
           <ul class="navbar-nav">
