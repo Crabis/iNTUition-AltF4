@@ -358,7 +358,7 @@ export default {
     Clear and concise
     Formatted in markdown
     Case Studies Reference
-    You have access to a collection of past case studies ${caseStudies} on organizational change, categorized by different change management frameworks. These include:
+    You have access to a collection of past case studies ${JSON.stringify(caseStudies)} on organizational change, categorized by different change management frameworks. These include:
     Lewin's 3-Stage Model
     McKinsey's 7-S Framework
     Nudge Theory
