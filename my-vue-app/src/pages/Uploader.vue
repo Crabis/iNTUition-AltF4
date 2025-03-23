@@ -448,13 +448,37 @@ async function saveTimeline() {
       }])
     console.log(response)
 
-    // if (error) {
-    //   console.error('Supabase insert error:', error)
-    //   alert('❌ Failed to save project.')
-    // } else {
-    //   alert('✅ Project saved successfully!')
-    //   console.log('Saved data:', data)
-    // }
+    const doc = new jsPDF();
+    const pageHeight = doc.internal.pageSize.height;
+    
+    doc.setFontSize(16);
+    doc.text("AI Recommendations", 20, 20);
+    
+    const recommendations = apiResponse.value.replace(/<[^>]*>/g, '');
+    doc.setFontSize(12);
+    
+    let splitText = doc.splitTextToSize(recommendations, 170);
+    let yPosition = 30;
+  
+  for (let i = 0; i < splitText.length; i++) {
+    if (yPosition > pageHeight - 20) {
+      doc.addPage();
+      yPosition = 20;
+    }
+    doc.text(splitText[i], 20, yPosition);
+    yPosition += 7;
+  }
+  const arrayBuffer = doc.output('arraybuffer')
+  const pdfBlob = new Blob([arrayBuffer], { type: 'application/pdf' })
+  const fileName = `${projectID.value}.pdf`
+  console.log(projectID)
+  console.log(fileName)
+  const { data2, error2 } = await supabase.storage
+    .from('plans') // your bucket name
+    .upload(fileName, pdfBlob, {
+      contentType: 'application/pdf',
+      upsert: true // overwrite if same name
+    })
   } catch (err) {
     console.error('Error generating timeline or saving:', err)
     alert('❌ An error occurred during save.')
