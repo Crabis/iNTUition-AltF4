@@ -40,11 +40,13 @@
                     <div class="project-selection">
                         <label for="project-select">Please select a project to discuss:</label>
                         <select id="project-select" v-model="final" class="form-control">
-                            <option value="" disabled>Select a project</option>
+                            <option value="General Questions">General Questions</option>
                             <option v-for="(projectTitle, index) in title" :key="index" :value="projectTitle">
                                 {{ projectTitle }}
                             </option>
                         </select>
+
+
                         <b-button variant="primary" class="mt-3" @click="confirmProjectSelection"
                             :disabled="!final">Confirm Selection</b-button>
                     </div>
@@ -144,24 +146,25 @@ import { supabase } from '@/supabase';
 export default {
     name: 'Chatbot',
     data() {
-        return {
-            title: [],
-            context: ``,
-            userInput: '',
-            final: '', // Store the selected project
-            projectSelected: false, // Track if a project has been selected
-            messages: [
-                {
-                    role: 'assistant',
-                    content: 'Hello! I\'m your Change Management Assistant. Please select a project from the dropdown to begin our discussion about managing change.'
-                }
-            ],
-            isLoading: false,
-            isDarkMode: false,
-            showResources: false,
-            userAvatar: null,
-        };
-    },
+    return {
+        title: [],
+        context: ``,
+        userInput: '',
+        final: 'General Questions', // Set default value
+        projectSelected: true, // Already selected by default
+        messages: [
+            {
+                role: 'assistant',
+                content: 'Hello! I\'m your Change Management Assistant. You can discuss general questions or select a specific project from the dropdown to begin our discussion.'
+            }
+        ],
+        isLoading: false,
+        isDarkMode: false,
+        showResources: false,
+        userAvatar: null,
+    };
+},
+
     mounted() {
         // Scroll to bottom of chat
         this.scrollToBottom();
@@ -195,32 +198,42 @@ export default {
         confirmProjectSelection() {
             if (this.final) {
                 this.projectSelected = true;
-                // Update the context based on the selected project if needed
-                
-                // Add a message confirming the selection
+
+                let confirmationMessage;
+                if (this.final === "General Questions") {
+                    confirmationMessage = "You're in General Questions mode. Feel free to ask any change management questions without specific project context.";
+                } else {
+                    confirmationMessage = `You've selected the project "${this.final}". How can I help you manage changes related to this project?`;
+                }
+
                 this.messages.push({
                     role: 'assistant',
-                    content: `You've selected the project "${this.final}". How can I help you manage changes related to this project?`
+                    content: confirmationMessage
                 });
             }
         },
-        
+
+
+
         // Modify sendMessage to include the selected project in the context
         async sendMessage() {
             if (!this.userInput.trim() || this.isLoading) return;
-            
+
             // Check if a project has been selected
-            if (!this.projectSelected) {
+            if (!this.projectSelected && !this.final) {
                 this.messages.push({
                     role: 'assistant',
-                    content: 'Please select a project from the dropdown first before we continue.'
+                    content: 'Please select a project or "General Questions" from the dropdown first before we continue.'
                 });
                 return;
             }
 
-            // Rest of the sendMessage method remains the same
-            // But you can now include this.final in your API calls
-            // ...
+            // If not already marked as selected, mark it now
+            if (!this.projectSelected && this.final) {
+                this.projectSelected = true;
+            }
+
+            // Continue with the rest of your sendMessage logic
             this.messages.push({
                 role: 'user',
                 content: this.userInput
@@ -229,24 +242,28 @@ export default {
             const userMessage = this.userInput;
             this.userInput = '';
             this.isLoading = true;
-            
+
             // When preparing the system message, include the selected project
             const systemMessage = {
                 role: 'system',
                 content: `You are a supportive change management assistant. Help users manage their employee's emotions during organizational change. 
-                          The following is the context for what is the change:
-                          --
-                          Selected Project: ${this.final}
-                          ${this.context}
-                          --
-                          Based on the context and the user's questions, generate 5 questions that will assist you in understanding the root cause of the issue
-                          Using the following guides:
-                          --
-                          ${guides}
-                          --
-                          provide some solutions to resolve the user's issues.`
+              ${this.final === "General Questions"
+                        ? "The user is asking general change management questions without specific project context."
+                        : `The following is the context for what is the change:
+                  --
+                  Selected Project: ${this.final}
+                  ${this.context}
+                  --`
+                    }
+              Based on the context and the user's questions, generate 5 questions that will assist you in understanding the root cause of the issue
+              Using the following guides:
+              --
+              ${guides}
+              --
+              provide some solutions to resolve the user's issues.`
             };
-            
+
+
             // Continue with the existing sendMessage implementation
             try {
                 // Prepare conversation history for the AI
@@ -265,12 +282,12 @@ export default {
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
-                        "model": "google/gemini-2.0-flash-thinking-exp:free",
+                        "model": "google/gemini-2.0-flash-exp:free",
                         "messages": [
                             {
                                 role: 'system',
-                                content: systemMessage
-                                            
+                                content: systemMessage.content
+
                             },
                             ...messageHistory
                         ]
@@ -278,6 +295,7 @@ export default {
                 });
 
                 const completion = await response.json();
+                console.log(completion)
 
                 // Add AI response to messages
                 if (completion.choices && completion.choices[0]) {
@@ -297,7 +315,7 @@ export default {
                 this.userInput = '';
             }
         },
-        
+
         // Other existing methods remain the same
         scrollToBottom() {
             if (this.$refs.chatBody) {
@@ -320,27 +338,28 @@ export default {
             this.messages = this.messages.slice(0, 1);
         },
         async fetchData() {
-      const { data: { user } } = await supabase.auth.getUser();
+            const { data: { user } } = await supabase.auth.getUser();
 
-      // Assuming ongoingProjects has a user_id column that references the authenticated user
-      const { data, error } = await supabase
-        .from('ongoingProjects')
-        .select(`
+            // Assuming ongoingProjects has a user_id column that references the authenticated user
+            const { data, error } = await supabase
+                .from('ongoingProjects')
+                .select(`
     projectDetails (projectName)
   `)
-        .eq('userID', user.id); // Use the appropriate column that links to the user
+                .eq('userID', user.id); // Use the appropriate column that links to the user
 
-      if (error) console.error('Error fetching data:', error);
-      else { console.log(data); 
-      for(let i of data){
-        let response =i.projectDetails
-        this.title.push(response.projectName)
-        console.log(this.title)
-      }
-      }
+            if (error) console.error('Error fetching data:', error);
+            else {
+                console.log(data);
+                for (let i of data) {
+                    let response = i.projectDetails
+                    this.title.push(response.projectName)
+                    console.log(this.title)
+                }
+            }
 
-      
-    }
+
+        }
     }
 };
 
@@ -843,30 +862,31 @@ body.dark-mode {
     .resource-item {
         width: 100%;
     }
+
     .project-selection {
-    margin: 20px 0;
-    text-align: left;
-    background-color: var(--card-bg);
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
+        margin: 20px 0;
+        text-align: left;
+        background-color: var(--card-bg);
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
 
-.project-selection label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    color: var(--primary-color);
-}
+    .project-selection label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: var(--primary-color);
+    }
 
-.project-selection select {
-    width: 100%;
-    padding: 8px 12px;
-    border-radius: 4px;
-    border: 1px solid var(--border-color);
-    background-color: var(--bg-color);
-    color: var(--text-color);
-}
+    .project-selection select {
+        width: 100%;
+        padding: 8px 12px;
+        border-radius: 4px;
+        border: 1px solid var(--border-color);
+        background-color: var(--bg-color);
+        color: var(--text-color);
+    }
 
 }
 </style>
