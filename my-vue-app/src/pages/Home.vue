@@ -139,9 +139,10 @@
             </div>
             <h3 class="text-muted">Select a project to view its timeline</h3>
             <p class="text-muted">Choose from the projects list on the left sidebar</p>
-            <button class="btn btn-primary mt-3">
+            <button class="btn btn-primary mt-3" @click="$router.push('/upload')">
               <i class="bi bi-plus-circle me-2"></i> Create New Project
             </button>
+
           </div>
         </main>
       </div>

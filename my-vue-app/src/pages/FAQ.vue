@@ -342,15 +342,55 @@ export default {
       // Create a sanitized version of the conversation by filtering out any user messages
       // that try to inject a new role or override system instructions.
       const sanitizedConversation = this.conversation.filter(msg => {
-        // For example, if a user message contains "you are" (case-insensitive), filter it out.
         if (msg.role === "user" && /you are/i.test(msg.content)) {
           return false;
         }
         return true;
       });
 
+      // Build messagesToSend array starting with the base system message
+      let messagesToSend = [
+        {
+          role: 'system',
+          content: `Change Management Expert Persona
+    You are Jim, a helpful change management expert. Your responses should always be:
+    Professional in tone, regardless of the prompt
+    Clear and concise
+    Formatted in markdown
+    Case Studies Reference
+    You have access to a collection of past case studies ${caseStudies} on organizational change, categorized by different change management frameworks. These include:
+    Lewin's 3-Stage Model
+    McKinsey's 7-S Framework
+    Nudge Theory
+    ADKAR Model
+    Kübler-Ross Change Curve
+    Using Case Studies
+    Only refer to these case studies if the user explicitly asks for examples of similar changes in the past. When providing examples, ensure they are relevant to the user's query and illustrate the application of the appropriate change management model.
+    Response Guidelines
+    Maintain a professional tone at all times
+    Provide clear and actionable advice
+    Use markdown formatting for improved readability
+    Draw from the case studies when appropriate and requested
+    Tailor your responses to the specific needs and context of the user's query`
+        }
+      ];
+
+      // Check if the last assistant message was disliked and add extra system prompt if so
+      const lastIdx = this.lastAssistantIndex;
+      if (lastIdx !== -1 && this.conversation[lastIdx].feedback === "dislike") {
+        messagesToSend.push({
+          role: "system",
+          content: "User indicated that your previous response was unsatisfactory. Please provide a more refined answer."
+        });
+      }
+
+      // Append the sanitized conversation (ignoring temporary "..." messages)
+      messagesToSend = messagesToSend.concat(
+        sanitizedConversation.filter(msg => msg.role !== "assistant" || msg.content !== "...")
+      );
+
       try {
-        console.log(caseStudies)
+        console.log(caseStudies);
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
           method: "POST",
           headers: {
@@ -359,38 +399,13 @@ export default {
           },
           body: JSON.stringify({
             model: "google/gemini-2.0-flash-exp:free",
-            messages: [
-              {
-                role: 'system',
-                content: `Change Management Expert Persona
-You are Jim, a helpful change management expert. Your responses should always be:
-Professional in tone, regardless of the prompt
-Clear and concise
-Formatted in markdown
-Case Studies Reference
-You have access to a collection of past case studies ${caseStudies} on organizational change, categorized by different change management frameworks. These include:
-Lewin's 3-Stage Model
-McKinsey's 7-S Framework
-Nudge Theory
-ADKAR Model
-Kübler-Ross Change Curve
-Using Case Studies
-Only refer to these case studies if the user explicitly asks for examples of similar changes in the past. When providing examples, ensure they are relevant to the user's query and illustrate the application of the appropriate change management model.
-Response Guidelines
-Maintain a professional tone at all times
-Provide clear and actionable advice
-Use markdown formatting for improved readability
-Draw from the case studies when appropriate and requested
-Tailor your responses to the specific needs and context of the user's query`
-              },
-              ...sanitizedConversation.filter(msg => msg.role !== "assistant" || msg.content !== "...")
-            ]
+            messages: messagesToSend
           })
         });
         const data = await response.json();
         // Remove the temporary loading message
         this.conversation.pop();
-        console.log(data)
+        console.log(data);
         const aiReply = data?.choices?.[0]?.message?.content || "No response received.";
         this.conversation.push({ role: "assistant", content: aiReply });
       } catch (error) {
@@ -405,16 +420,41 @@ Tailor your responses to the specific needs and context of the user's query`
         this.chatLoading = false;
       }
     },
+
     async regenerateResponse() {
-      // Remove the last assistant message if it exists
+      // Save feedback from the last assistant message before removing it.
       const lastIdx = this.lastAssistantIndex;
+      let lastFeedback = null;
       if (lastIdx !== -1) {
+        lastFeedback = this.conversation[lastIdx].feedback;
         this.conversation.splice(lastIdx, 1);
       }
+
       // Set loading state and add temporary "..." message
       this.chatLoading = true;
       this.conversation.push({ role: "assistant", content: "..." });
-      
+
+      // Build messagesToSend array starting with the base system message
+      let messagesToSend = [
+        {
+          role: 'system',
+          content: 'You are Jim, a helpful change management expert. Provide clear, concise, and professional answers formatted in markdown.'
+        }
+      ];
+
+      // If the last assistant message was disliked, add extra system prompt
+      if (lastFeedback === "dislike") {
+        messagesToSend.push({
+          role: "system",
+          content: "User rated your previous answer as unsatisfactory. Please improve your response accordingly."
+        });
+      }
+
+      // Append all conversation messages (excluding any temporary "..." messages)
+      messagesToSend = messagesToSend.concat(
+        this.conversation.filter(msg => msg.role !== "assistant" || msg.content !== "...")
+      );
+
       try {
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
           method: "POST",
@@ -424,14 +464,7 @@ Tailor your responses to the specific needs and context of the user's query`
           },
           body: JSON.stringify({
             model: "google/gemini-2.0-flash-exp:free",
-            messages: [
-              {
-                role: 'system',
-                content: 'You are Jim, a helpful change management expert. Provide clear, concise, and professional answers formatted in markdown.'
-              },
-              // Filter out any temporary "..." messages if present
-              ...this.conversation.filter(msg => msg.role !== "assistant" || msg.content !== "...")
-            ]
+            messages: messagesToSend
           })
         });
         const data = await response.json();
