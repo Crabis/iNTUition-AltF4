@@ -16,37 +16,74 @@
     <div class="container-fluid">
       <div class="row">
         <!-- Sidebar -->
-        <div class="col-md-3 col-lg-2 d-md-block bg-white sidebar collapse shadow-sm" id="sidebarMenu">
-          <div class="position-sticky pt-3">
-            <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-              <span>Projects</span>
-              <a class="link-secondary" href="#" aria-label="Add a new project">
-                <i class="bi bi-plus-circle"></i>
-              </a>
-            </h6>
-            <ul class="nav flex-column">
-              <li class="nav-item" v-for="(dataset, index) in roadmapData" :key="index">
-                <a class="nav-link d-flex align-items-center"
-                  :class="{ 'active bg-primary text-white': selectedProjectIndex === index }" href="#"
-                  @click.prevent="selectProject(index)">
-                  <i class="bi bi-kanban me-2"></i>
-                  {{ dataset.title }}
-                  <span v-if="selectedProjectIndex === index" class="ms-auto">
-                    <i class="bi bi-check-circle-fill"></i>
-                  </span>
-                </a>
-              </li>
-            </ul>
-          </div>
+<!-- Sidebar -->
+<div class="col-md-3 col-lg-2 d-md-block bg-white sidebar collapse shadow-sm" id="sidebarMenu">
+  <div class="position-sticky pt-3">
+    <!-- Ongoing Projects Section -->
+    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+      <span>Ongoing Projects</span>
+      <a class="link-secondary" href="#" aria-label="Add a new project">
+        <i class="bi bi-plus-circle"></i>
+      </a>
+    </h6>
+    <ul class="nav flex-column">
+      <li class="nav-item" v-for="(dataset, index) in ongoingProjects" :key="index">
+        <div class="d-flex align-items-center">
+          <a class="nav-link d-flex align-items-center flex-grow-1"
+            :class="{ 'active bg-primary text-white': selectedProjectIndex === getOriginalIndex(dataset) }" href="#"
+            @click.prevent="selectProject(getOriginalIndex(dataset))">
+            <i class="bi bi-kanban me-2"></i>
+            {{ dataset.title }}
+            <span v-if="selectedProjectIndex === getOriginalIndex(dataset)" class="ms-auto">
+              <i class="bi bi-check-circle-fill"></i>
+            </span>
+          </a>
         </div>
+      </li>
+    </ul>
+    
+    <!-- Past Projects Section -->
+    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+      <span>Past Projects</span>
+    </h6>
+    <ul class="nav flex-column">
+      <li class="nav-item" v-for="(dataset, index) in pastProjects" :key="index">
+        <div class="d-flex align-items-center">
+          <a class="nav-link d-flex align-items-center flex-grow-1"
+            :class="{ 'active bg-primary text-white': selectedProjectIndex === getOriginalIndex(dataset) }" href="#"
+            @click.prevent="selectProject(getOriginalIndex(dataset))">
+            <i class="bi bi-archive me-2"></i>
+            {{ dataset.title }}
+            <span v-if="selectedProjectIndex === getOriginalIndex(dataset)" class="ms-auto">
+              <i class="bi bi-check-circle-fill"></i>
+            </span>
+          </a>
+        </div>
+      </li>
+    </ul>
+  </div>
+</div>
+
 
         <!-- Main Content -->
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
-          <div
-            class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-            <h1 class="h2">{{ selectedProject ? selectedProject.title : 'Dashboard' }}</h1>
-
-          </div>
+          <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{{ selectedProject ? selectedProject.title : 'Dashboard' }}</h1>
+    
+    <!-- Project Status Toggle Button -->
+    <div v-if="selectedProject" class="btn-toolbar">
+      <button v-if="selectedProject.ongoing" 
+              class="btn btn-outline-secondary" 
+              @click="updateProjectStatus(selectedProject, false)">
+        <i class="bi bi-check-circle me-1"></i> Mark as Completed
+      </button>
+      <button v-else 
+              class="btn btn-outline-primary" 
+              @click="updateProjectStatus(selectedProject, true)">
+        <i class="bi bi-arrow-counterclockwise me-1"></i> Reactivate Project
+      </button>
+    </div>
+  </div>
 
 
 
@@ -121,9 +158,51 @@ export default {
   computed: {
     selectedProject() {
       return this.roadmapData[this.selectedProjectIndex];
-    }
+    },
+    ongoingProjects() {
+    return this.roadmapData.filter(project => project.ongoing === true);
+  },
+  pastProjects() {
+    return this.roadmapData.filter(project => project.ongoing === false);
+  }
   },
   methods: {
+    async updateProjectStatus(project, ongoingStatus) {
+    try {
+      // Get the current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.error('User not authenticated');
+        return;
+      }
+      
+      // Find the project in the roadmapData array to get its projectID
+      const projectIndex = this.getOriginalIndex(project);
+      const projectToUpdate = this.roadmapData[projectIndex];
+      
+      // Update the project status in Supabase
+      const { error } = await supabase
+        .from('ongoingProjects')
+        .update({ ongoing: ongoingStatus })
+        .eq('projectID', projectToUpdate.projectID)
+      
+      if (error) {
+        console.error('Error updating project status:', error);
+        return;
+      }
+      
+      // Update the local state
+      this.roadmapData[projectIndex].ongoing = ongoingStatus;
+      
+      // Show success message (you can implement a toast notification here)
+      console.log(`Project "${project.title}" has been ${ongoingStatus ? 'reactivated' : 'marked as complete'}`);
+    } catch (error) {
+      console.error('Error in updateProjectStatus:', error);
+    }
+  },
+    getOriginalIndex(project) {
+    return this.roadmapData.findIndex(p => p.title === project.title);
+  },
     handleRoadmapGenerated(roadmap) {
       this.roadmapData = roadmap;
       this.selectedProjectIndex = 0;
@@ -137,7 +216,7 @@ export default {
       // Assuming ongoingProjects has a user_id column that references the authenticated user
       const { data, error } = await supabase
         .from('ongoingProjects')
-        .select(`
+        .select(`projectID,ongoing,
     projectDetails (projectName,timeline)
   `)
         .eq('userID', user.id); // Use the appropriate column that links to the user
@@ -147,6 +226,8 @@ export default {
       for(let i of data){
         let response =i.projectDetails.timeline
         response.title = i.projectDetails.projectName
+        response.ongoing = i.ongoing
+        response.projectID = i.projectID
         this.roadmapData.push(response)
         console.log(response)
       }
