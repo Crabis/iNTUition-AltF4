@@ -262,7 +262,7 @@ export default {
         response.title = i.projectDetails.projectName
         response.ongoing = i.ongoing
         response.projectID = i.projectID
-        response.frameworkUsed = i.frameworkUsed
+        response.frameworkUsed = i.projectDetails.frameworkUsed
         response.updatedAt = i.projectDetails.updatedAt
 
         this.roadmapData.push(response)
