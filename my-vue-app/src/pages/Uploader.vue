@@ -282,10 +282,11 @@ const currentDate = ref(new Date().toLocaleDateString())
 const aiRecommendationText = ref('')
 const aiName = ref('')
 const aiTimeline = ref('')
+const projectID = ref('')
 
 
 
-function downloadPdf() {
+async function downloadPdf() {
   const doc = new jsPDF();
   const pageHeight = doc.internal.pageSize.height;
   
@@ -308,6 +309,22 @@ function downloadPdf() {
   }
   
   doc.save('ai_recommendations.pdf');
+
+  if (!projectID.value) {
+  projectID.value = uuidv4()
+  }
+  const arrayBuffer = doc.output('arraybuffer')
+  const pdfBlob = new Blob([arrayBuffer], { type: 'application/pdf' })
+  const fileName = `${projectID.value}.pdf`
+  console.log(projectID)
+  console.log(fileName)
+  const { data2, error2 } = await supabase.storage
+    .from('plans') // your bucket name
+    .upload(fileName, pdfBlob, {
+      contentType: 'application/pdf',
+      upsert: true // overwrite if same name
+    })
+    console.log(error2)
 }
 
 
@@ -410,23 +427,25 @@ async function saveTimeline() {
     const cleaned = cleanJsonString(response)
     const aiTimelines = JSON.parse(cleaned)
     console.log("Parsed the JSON")
-    const projectID = uuidv4()
+    if (!projectID.value) {
+    projectID.value = uuidv4()
+    }
     const { data: session, error: sessionError } = await supabase.auth.getSession()
     const userID = session.session.user.id
-    const { error1 } = await supabase.from('ongoingProjects').insert([
-      {
-        userID : userID,
-        projectID: projectID,
-        ongoing: true
-      }])
     const { data, error } = await supabase.from('projectDetails').insert([
       {
-        projectID: projectID,
+        projectID: projectID.value,
         projectName: projectName,
         timeline: aiTimelines, // assuming response is already JSON
         frameworkUsed: aiName.value
       }
     ])
+    const { error1 } = await supabase.from('ongoingProjects').insert([
+      {
+        userID : userID,
+        projectID: projectID.value,
+        ongoing: true
+      }])
     console.log(response)
 
     // if (error) {
