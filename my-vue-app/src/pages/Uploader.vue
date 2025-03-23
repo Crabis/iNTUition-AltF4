@@ -69,19 +69,19 @@
 
                   <div class="text-muted small mb-3">
                     <i class="bi bi-info-circle me-1"></i> Describe how you'd like your change model to be handled
-                    (e.g., focus on agility, minimize disruption, etc.)
+                    (e.g., ADKAR, Lewin, Nudge Theory etc.)
                   </div>
 
                   <!-- Suggestion chips -->
                   <div class="d-flex flex-wrap gap-2 mb-3">
-                    <span class="suggestion-chip" @click="addSuggestion('Focus on agility')">
-                      <i class="bi bi-lightning-charge"></i> Focus on agility
+                    <span class="suggestion-chip" @click="addSuggestion('ADKAR Framework')">
+                      Use ADKAR
                     </span>
-                    <span class="suggestion-chip" @click="addSuggestion('Minimize disruption')">
-                      <i class="bi bi-shield-check"></i> Minimize disruption
+                    <span class="suggestion-chip" @click="addSuggestion('Lewin Theory')">
+                      Use Lewin
                     </span>
-                    <span class="suggestion-chip" @click="addSuggestion('Optimize for cost')">
-                      <i class="bi bi-cash-coin"></i> Optimize for cost
+                    <span class="suggestion-chip" @click="addSuggestion('Nudge Theory')">
+                      Nudge Theory
                     </span>
                   </div>
                 </div>
