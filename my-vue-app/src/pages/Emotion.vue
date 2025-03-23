@@ -50,13 +50,6 @@
                         <b-button variant="primary" class="mt-3" @click="confirmProjectSelection"
                             :disabled="!final">Confirm Selection</b-button>
                     </div>
-                    <!-- Add this inside the chat-body, perhaps after the project selection -->
-                    <div v-if="final !== 'General Questions'" class="project-document-actions">
-                        <b-button variant="outline-primary" size="sm" @click="viewCurrentProjectPDF">
-                            <b-icon icon="file-earmark-pdf" font-scale="1"></b-icon> View Project Document
-                        </b-button>
-                    </div>
-
 
                     <div class="quick-prompts">
                         <b-button variant="outline-primary" size="sm"
@@ -150,36 +143,32 @@
 import { marked } from 'marked';
 import guides from '@/data/communication.json';
 import { supabase } from '@/supabase';
-import * as pdfjs from 'pdfjs-dist'
-import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.mjs?worker';
 export default {
     name: 'Chatbot',
     data() {
-        return {
-            title: [],
-            context: ``,
-            userInput: '',
-            final: 'General Questions', // Set default value
-            projectSelected: true, // Already selected by default
-            guiding: JSON.stringify(guides),
-            messages: [
-                {
-                    role: 'assistant',
-                    content: 'Hello! I\'m your Change Management Assistant. You can discuss general questions or select a specific project from the dropdown to begin our discussion.'
-                }
-            ],
-            isLoading: false,
-            isDarkMode: false,
-            showResources: false,
-            userAvatar: null,
-        };
-    },
+    return {
+        title: [],
+        context: ``,
+        userInput: '',
+        final: 'General Questions', // Set default value
+        projectSelected: true, // Already selected by default
+        messages: [
+            {
+                role: 'assistant',
+                content: 'Hello! I\'m your Change Management Assistant. You can discuss general questions or select a specific project from the dropdown to begin our discussion.'
+            }
+        ],
+        isLoading: false,
+        isDarkMode: false,
+        showResources: false,
+        userAvatar: null,
+    };
+},
 
     mounted() {
         // Scroll to bottom of chat
         this.scrollToBottom();
         this.fetchData();
-        pdfjs.GlobalWorkerOptions.workerPort = new pdfjsWorker();
 
         // Check for saved theme preference
         const savedTheme = localStorage.getItem('chatTheme');
@@ -193,105 +182,6 @@ export default {
         this.scrollToBottom();
     },
     methods: {
-        // Add this to methods
-        async viewCurrentProjectPDF() {
-            try {
-                const selectedProject = await this.getProjectIDByName(this.final);
-                if (selectedProject) {
-                    await this.viewProjectPDF(selectedProject.projectID);
-                } else {
-                    console.error('Could not find project ID for:', this.final);
-                }
-            } catch (error) {
-                console.error('Error viewing current project PDF:', error);
-            }
-        },
-
-        async fetchProjectPDF(projectID) {
-  try {
-    this.isLoading = true;
-    
-    // Create a signed URL for the PDF
-    const { data, error } = await supabase
-      .storage
-      .from('plans')
-      .createSignedUrl(`${projectID}.pdf`, 60); // URL valid for 60 seconds
-
-    if (error) {
-      console.error('Error fetching PDF URL:', error);
-      this.messages.push({
-        role: 'assistant',
-        content: 'I had trouble accessing the project document. Let\'s continue with general information.'
-      });
-      return;
-    }
-
-    if (data) {
-      // Load the PDF document
-      const loadingTask = pdfjs.getDocument(data.signedUrl);
-      const pdf = await loadingTask.promise;
-      
-      let textContent = '';
-      
-      // Extract text from each page
-      for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const content = await page.getTextContent();
-        const strings = content.items.map(item => item.str);
-        textContent += strings.join(' ') + '\n';
-      }
-      
-      // Set the extracted text as context
-      
-      this.context = textContent;
-
-      
-      // Notify the user that the project document has been loaded
-      this.messages.push({
-        role: 'assistant',
-        content: `I've loaded the project document for "${this.final}". How can I help you with this change initiative?`
-      });
-      
-    } else {
-      console.error('PDF not found for project ID:', projectID);
-      this.messages.push({
-        role: 'assistant',
-        content: 'I couldn\'t find the project document. Let\'s proceed with the information we have.'
-      });
-    }
-  } catch (error) {
-    console.error('Error in fetchProjectPDF:', error);
-    this.messages.push({
-      role: 'assistant',
-      content: 'I encountered an error while processing the project document. Let\'s continue our discussion with general information.'
-    });
-  } finally {
-    this.isLoading = false;
-  }
-},
-
-        // For viewing the PDF in a new tab (original functionality)
-        async viewProjectPDF(projectID) {
-            try {
-                const { data, error } = await supabase
-                    .storage
-                    .from('plans')
-                    .createSignedUrl(`${projectID}.pdf`, 60); // URL valid for 60 seconds
-
-                if (error) {
-                    console.error('Error fetching PDF URL:', error);
-                    return;
-                }
-
-                if (data) {
-                    window.open(data.signedUrl, '_blank');
-                } else {
-                    console.error('PDF not found for project ID:', projectID);
-                }
-            } catch (error) {
-                console.error('Error in viewProjectPDF:', error);
-            }
-        },
         // Add this new method
         formatMessage(content) {
             // Convert markdown to HTML and enhance with custom formatting
@@ -305,63 +195,23 @@ export default {
 
             return formattedContent;
         },
-        async confirmProjectSelection() {
+        confirmProjectSelection() {
             if (this.final) {
                 this.projectSelected = true;
 
+                let confirmationMessage;
                 if (this.final === "General Questions") {
-                    this.messages.push({
-                        role: 'assistant',
-                        content: "You're in General Questions mode. Feel free to ask any change management questions without specific project context."
-                    });
+                    confirmationMessage = "You're in General Questions mode. Feel free to ask any change management questions without specific project context.";
                 } else {
-                    // Find the project ID for the selected project name
-                    const selectedProject = await this.getProjectIDByName(this.final);
-
-                    if (selectedProject) {
-                        // Fetch the PDF content for the selected project
-                        await this.fetchProjectPDF(selectedProject.projectID);
-                        
-                    } else {
-                        this.messages.push({
-                            role: 'assistant',
-                            content: `You've selected the project "${this.final}". How can I help you manage changes related to this project?`
-                        });
-                    }
+                    confirmationMessage = `You've selected the project "${this.final}". How can I help you manage changes related to this project?`;
                 }
+
+                this.messages.push({
+                    role: 'assistant',
+                    content: confirmationMessage
+                });
             }
         },
-
-        // Helper method to get project ID from project name
-        async getProjectIDByName(projectName) {
-            try {
-                const { data: { user } } = await supabase.auth.getUser();
-
-                const { data, error } = await supabase
-                    .from('ongoingProjects')
-                    .select(`
-        projectDetails (projectName, projectID)
-      `)
-                    .eq('userID', user.id);
-
-                if (error) {
-                    console.error('Error fetching project details:', error);
-                    return null;
-                }
-
-                for (const item of data) {
-                    if (item.projectDetails.projectName === projectName) {
-                        return item.projectDetails;
-                    }
-                }
-
-                return null;
-            } catch (error) {
-                console.error('Error in getProjectIDByName:', error);
-                return null;
-            }
-        },
-
 
 
 
@@ -402,13 +252,9 @@ export default {
                         : `The following is the context for what is the change:
                   --
                   Selected Project: ${this.final}
-                  
+                  ${this.context}
                   --`
                     }
-                The following are the guides to follow for reference:
-                --
-                ${this.guides}
-                --
               Based on the context and the user's questions, generate 5 questions that will assist you in understanding the root cause of the issue
               Using the following guides:
               --
@@ -426,7 +272,6 @@ export default {
                     content: msg.content
                 }));
 
-                console.log(systemMessage)
                 // Call OpenRouter.ai API using fetch
                 const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
                     method: "POST",
@@ -499,7 +344,7 @@ export default {
             const { data, error } = await supabase
                 .from('ongoingProjects')
                 .select(`
-    projectDetails (projectName,projectID)
+    projectDetails (projectName)
   `)
                 .eq('userID', user.id); // Use the appropriate column that links to the user
 
