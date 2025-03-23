@@ -68,27 +68,35 @@
         <!-- Main Content -->
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
           <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">{{ selectedProject ? selectedProject.title : 'Dashboard' }}</h1>
-    
-    <!-- Project Status Toggle Button -->
-    <div v-if="selectedProject" class="btn-toolbar">
-      <button v-if="selectedProject.ongoing" 
-              class="btn btn-outline-secondary" 
-              @click="updateProjectStatus(selectedProject, false)">
-        <i class="bi bi-check-circle me-1"></i> Mark as Completed
-      </button>
-      <button v-else 
-              class="btn btn-outline-primary" 
-              @click="updateProjectStatus(selectedProject, true)">
-        <i class="bi bi-arrow-counterclockwise me-1"></i> Reactivate Project
-      </button>
-      <button class="btn btn-outline-info" 
-              @click="viewProjectPDF(selectedProject.projectID)">
-        <i class="bi bi-file-earmark-pdf me-1"></i> View PDF
-      </button>
+  <h1 class="h2">
+    {{ selectedProject ? selectedProject.title : 'Dashboard' }}
+    <span v-if="selectedProject && selectedProject.frameworkUsed" class="badge bg-info ms-2">
+      {{ selectedProject.frameworkUsed }}
+    </span>
+  </h1>
+  
+  <!-- Project Status Toggle Button -->
+  <div v-if="selectedProject" class="btn-toolbar">
+    <div class="text-muted small me-3 text-end">
+      <div>Created on:</div>
+      <div>{{ selectedProject.updatedAt ? selectedProject.updatedAt.substring(0, 10) : 'Unknown date' }}</div>
     </div>
+    <button v-if="selectedProject.ongoing" 
+            class="btn btn-outline-secondary" 
+            @click="updateProjectStatus(selectedProject, false)">
+      <i class="bi bi-check-circle me-1"></i> Mark as Completed
+    </button>
+    <button v-else 
+            class="btn btn-outline-primary" 
+            @click="updateProjectStatus(selectedProject, true)">
+      <i class="bi bi-arrow-counterclockwise me-1"></i> Reactivate Project
+    </button>
+    <button class="btn btn-outline-info" 
+            @click="viewProjectPDF(selectedProject.projectID)">
+      <i class="bi bi-file-earmark-pdf me-1"></i> View PDF
+    </button>
   </div>
-
+</div>
 
 
           <!-- Project Timeline -->
@@ -243,7 +251,7 @@ export default {
       const { data, error } = await supabase
         .from('ongoingProjects')
         .select(`projectID,ongoing,
-    projectDetails (projectName,timeline)
+    projectDetails (projectName,timeline,frameworkUsed,updatedAt)
   `)
         .eq('userID', user.id); // Use the appropriate column that links to the user
 
@@ -254,6 +262,9 @@ export default {
         response.title = i.projectDetails.projectName
         response.ongoing = i.ongoing
         response.projectID = i.projectID
+        response.frameworkUsed = i.frameworkUsed
+        response.updatedAt = i.projectDetails.updatedAt
+
         this.roadmapData.push(response)
         console.log(response)
       }
