@@ -82,6 +82,10 @@
               @click="updateProjectStatus(selectedProject, true)">
         <i class="bi bi-arrow-counterclockwise me-1"></i> Reactivate Project
       </button>
+      <button class="btn btn-outline-info" 
+              @click="viewProjectPDF(selectedProject.projectID)">
+        <i class="bi bi-file-earmark-pdf me-1"></i> View PDF
+      </button>
     </div>
   </div>
 
@@ -167,6 +171,27 @@ export default {
   }
   },
   methods: {
+    async viewProjectPDF(projectID) {
+    try {
+      const { data, error } = await supabase
+        .storage
+        .from('plans')
+        .createSignedUrl(`${projectID}.pdf`, 60); // URL valid for 60 seconds
+
+      if (error) {
+        console.error('Error fetching PDF URL:', error);
+        return;
+      }
+
+      if (data) {
+        window.open(data.signedUrl, '_blank');
+      } else {
+        console.error('PDF not found for project ID:', projectID);
+      }
+    } catch (error) {
+      console.error('Error in viewProjectPDF:', error);
+    }
+  },
     async updateProjectStatus(project, ongoingStatus) {
     try {
       // Get the current user
